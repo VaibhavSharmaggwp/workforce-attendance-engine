@@ -1,0 +1,59 @@
+# ========================================================
+# Git Ignore - Workforce Attendance Engine
+# Eduqynt Techviista Pvt. Ltd.
+# ========================================================
+
+# Compiled class files & build artifacts
+**/target/
+target/
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven Wrapper & tools (keep wrapper scripts & properties)
+!.mvn/wrapper/maven-wrapper.jar
+!**/backend/.mvn/wrapper/maven-wrapper.properties
+!**/backend/mvnw
+!**/backend/mvnw.cmd
+
+# IntelliJ IDEA & JetBrains IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse & VSCode
+.project
+.classpath
+.settings/
+.vscode/
+
+# Secrets, Passwords, and Environment files
+*.env
+.env.*
+!.env.example
+!**/.env.example
+application-local.yml
+application-secret.yml
+
+# Log files
+*.log
+logs/
+
+# Frontend builds (when added)
+**/node_modules/
+**/dist/
+**/build/
+.next/
+
+# Operating System files
+Thumbs.db
+Desktop.ini
+.DS_Store
