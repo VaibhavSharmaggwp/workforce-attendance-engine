@@ -25,6 +25,7 @@ Engineered with scalability, auditability, and data integrity at its core, the p
 - **Strict Data Validation & Audit Trail:** Dedicated audit logs tracking retroactive adjustments, supervisory overrides, and manager approvals.
 - **Event-Driven Architecture:** Asynchronous event streaming via Apache Kafka for real-time notifications, downstream payroll triggers, and compliance alerts.
 - **High-Performance Caching:** Distributed state caching and rate-limiting powered by Redis.
+- **Automated Calculation Engine:** Real-time computation of elapsed shift time, aggregated break duration, and net working minutes.
 
 ---
 
@@ -38,14 +39,33 @@ workforce-attendance-engine/
 │   ├── .mvn/wrapper/         # Maven Wrapper configuration (v3.9.9)
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/         # Application source code
-│   │   │   │   └── com/techviista/attendance/
-│   │   │   │       ├── employee/      # Employee domain & entities
-│   │   │   │       └── ...
+│   │   │   ├── java/com/techviista/attendance/
+│   │   │   │   ├── attendance/
+│   │   │   │   │   ├── dto/AttendanceResponse.java      # Response DTO with duration metrics
+│   │   │   │   │   ├── service/AttendanceService.java   # Attendance lifecycle & business logic
+│   │   │   │   │   ├── Attendance.java                  # Attendance entity
+│   │   │   │   │   ├── AttendanceStatus.java            # WORKING, ON_BREAK, COMPLETED, INCOMPLETE
+│   │   │   │   │   └── BreakSession.java                # Granular break session entity
+│   │   │   │   ├── common/
+│   │   │   │   │   └── GlobalExceptionHandler.java      # Centralized error mapping (400, 409)
+│   │   │   │   ├── controller/
+│   │   │   │   │   └── AttendanceController.java        # REST API endpoints
+│   │   │   │   ├── employee/
+│   │   │   │   │   ├── Employee.java                    # Employee domain model
+│   │   │   │   │   └── EmployeeRole.java                # EMPLOYEE, MANAGER, ADMIN
+│   │   │   │   ├── repository/                          # Spring Data JPA repositories
+│   │   │   │   │   ├── AttendanceRepository.java
+│   │   │   │   │   ├── BreakSessionRepository.java
+│   │   │   │   │   └── EmployeeRepository.java
+│   │   │   │   └── AttendanceApplication.java           # Spring Boot application entry point
 │   │   │   └── resources/
-│   │   │       ├── application.yml    # Parameterized runtime configuration
-│   │   │       └── db/migration/      # Flyway SQL schema versioning
-│   │   └── test/             # Integration & unit test suites
+│   │   │       ├── application.yml                      # Parameterized runtime configuration
+│   │   │       └── db/migration/V1__init_schema.sql     # Flyway SQL schema versioning
+│   │   └── test/
+│   │       └── java/com/techviista/attendance/
+│   │           ├── attendance/service/AttendanceServiceTest.java  # Unit tests (14 test cases)
+│   │           ├── controller/AttendanceControllerTest.java        # Web layer integration tests (11 test cases)
+│   │           └── AttendanceApplicationTests.java                 # Context loads test
 │   ├── .env.example          # Sample environment variable definitions
 │   ├── mvnw & mvnw.cmd       # Cross-platform Maven executable scripts
 │   └── pom.xml               # Maven project dependencies and build plugins
@@ -53,6 +73,45 @@ workforce-attendance-engine/
 │   └── README.md
 ├── .gitignore                # Enterprise-grade git ignore filters
 └── README.md                 # Project documentation
+```
+
+---
+
+## 📡 REST API Reference
+
+All endpoints currently authenticate via the `X-Employee-Id` header (temporary during core development; will transition to OAuth2 session extraction in Milestone 5).
+
+Base URL: `/api/v1/attendance`
+
+| Method | Endpoint | Description | Success Status | Error Scenarios |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/check-in` | Start daily shift session | `200 OK` | `400` (Unknown employee)<br>`409` (Already checked in today) |
+| `POST` | `/breaks/start` | Start an active break | `200 OK` | `409` (Not working, break already active, or no shift) |
+| `POST` | `/breaks/end` | Resume work after break | `200 OK` | `409` (Not on break, or no active break record found) |
+| `POST` | `/check-out` | End daily shift session | `200 OK` | `409` (Already checked out, or break is still active) |
+
+### Sample Response (`AttendanceResponse`)
+
+```json
+{
+  "id": "c1f7b022-7f23-424a-a236-4d2b406e2e50",
+  "status": "WORKING",
+  "checkInAt": "2026-10-25T09:00:00+05:30",
+  "checkOutAt": null,
+  "elapsedMinutes": 240,
+  "breakMinutes": 30,
+  "netWorkMinutes": 210
+}
+```
+
+### Standardized Error Format (`ErrorResponse`)
+
+```json
+{
+  "status": 409,
+  "message": "Cannot check out while a break is active. Please end your break first.",
+  "timestamp": "2026-10-25T13:30:00+05:30"
+}
 ```
 
 ---
@@ -126,6 +185,9 @@ Database migrations are strictly version-controlled using **Flyway**, ensuring i
 ./mvnw test
 ```
 
+> [!NOTE]
+> The automated test suite executes 25 unit and web-layer integration tests covering all state machine transitions, edge cases, duration calculations, and HTTP error responses with **0 failures and 0 errors**.
+
 #### 3. Run the Application Locally
 ```bash
 # Windows
@@ -144,11 +206,12 @@ The application will start on port `8080` (default) and execute Flyway migration
 - [x] **Milestone 1:** Monorepo architecture setup & Maven toolchain stabilization.
 - [x] **Milestone 2:** Flyway schema migration for Core Entities (Employees, Sessions, Breaks, Audit).
 - [x] **Milestone 3:** Project Lombok integration & entity mapping.
-- [ ] **Milestone 4:** Clock-In / Clock-Out / Break lifecycle REST APIs.
-- [ ] **Milestone 5:** Spring Security 6 & OAuth2 Client token integration.
-- [ ] **Milestone 6:** Redis distributed session management & anti-tamper rate limiting.
-- [ ] **Milestone 7:** Kafka event publishing for workforce audit triggers.
-- [ ] **Milestone 8:** Frontend Web Client (React / Vite dashboard).
+- [x] **Milestone 4:** Clock-In / Clock-Out / Break lifecycle REST APIs & duration calculation engine.
+- [x] **Milestone 5:** Comprehensive unit & integration testing suite (25 automated test cases).
+- [ ] **Milestone 6:** Spring Security 6 & OAuth2 Client token integration.
+- [ ] **Milestone 7:** Redis distributed session management & anti-tamper rate limiting.
+- [ ] **Milestone 8:** Kafka event publishing for workforce audit triggers.
+- [ ] **Milestone 9:** Frontend Web Client (React / Vite dashboard).
 
 ---
 
