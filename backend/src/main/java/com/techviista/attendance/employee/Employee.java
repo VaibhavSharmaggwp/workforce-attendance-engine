@@ -40,6 +40,7 @@ public class Employee {
     @Column(nullable = false)
     private EmployeeRole role;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
