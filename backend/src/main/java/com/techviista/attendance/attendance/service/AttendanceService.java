@@ -12,8 +12,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -70,18 +72,83 @@ public class AttendanceService {
         return mapToResponse(attendance);
     }
 
+    @Transactional
+    public AttendanceResponse endBreak(UUID employeeId){
+        Attendance attendance = getTodayActiveAttendance(employeeId);
+
+        // PRD Rule: End break allowed only when a break is active
+        if(attendance.getStatus() != AttendanceStatus.ON_BREAK){
+            throw new IllegalStateException("You are not currently on a break.");
+        }
+
+        BreakSession activeBreak = breakSessionRepository.findByAttendanceIdAndEndedAtIsNull(attendance.getId())
+                .orElseThrow(() -> new IllegalStateException("No active break found to end."));
+
+        activeBreak.setEndedAt(OffsetDateTime.now());
+        breakSessionRepository.save(activeBreak);
+
+        attendance.setStatus(AttendanceStatus.WORKING);
+        attendanceRepository.save(attendance);
+
+        return mapToResponse(attendance);
+    }
+
+    @Transactional
+    public AttendanceResponse checkOut(UUID employeeId) {
+        Attendance attendance = getTodayActiveAttendance(employeeId);
+
+        if (attendance.getStatus() == AttendanceStatus.COMPLETED) {
+            throw new IllegalStateException("You have already checked out today.");
+        }
+
+        // PRD Rule: No open break may remain when checking out
+        if (breakSessionRepository.findByAttendanceIdAndEndedAtIsNull(attendance.getId()).isPresent()) {
+            throw new IllegalStateException("Cannot check out while a break is active. Please end your break first.");
+        }
+
+        attendance.setCheckOutAt(OffsetDateTime.now());
+        attendance.setStatus(AttendanceStatus.COMPLETED);
+        attendanceRepository.save(attendance);
+
+        return mapToResponse(attendance);
+    }
+
     // Helper method to fetch today's record
     private Attendance getTodayActiveAttendance(UUID employeeId){
         return attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, LocalDate.now())
                 .orElseThrow(() -> new IllegalStateException("No active attendance session for today."));
     }
 
-    // Placeholder for DTO mapping
+    // This replaces the placeholder mapToResponse we wrote earlier
     private AttendanceResponse mapToResponse(Attendance attendance) {
+        List<BreakSession> dailyBreaks = breakSessionRepository.findByAttendanceId(attendance.getId());
+        
+        long totalBreakMinutes = 0;
+        for (BreakSession b : dailyBreaks) {
+            // PRD Rule: Recorded break time = sum of completed break durations
+            if (b.getEndedAt() != null) {
+                totalBreakMinutes += Duration.between(b.getStartedAt(), b.getEndedAt()).toMinutes();
+            }
+        }
+        
+        long elapsedMinutes = 0;
+        OffsetDateTime calculationEnd = (attendance.getCheckOutAt() != null) ? attendance.getCheckOutAt() : OffsetDateTime.now();
+        
+        if (attendance.getCheckInAt() != null) {
+            elapsedMinutes = Duration.between(attendance.getCheckInAt(), calculationEnd).toMinutes();
+        }
+        
+        // PRD Rule: Net work time = elapsed attendance time minus recorded break time. No negative values.
+        long netWorkMinutes = Math.max(0, elapsedMinutes - totalBreakMinutes);
+
         return AttendanceResponse.builder()
                 .id(attendance.getId())
                 .status(attendance.getStatus())
                 .checkInAt(attendance.getCheckInAt())
+                .checkOutAt(attendance.getCheckOutAt())
+                .elapsedMinutes(elapsedMinutes)
+                .breakMinutes(totalBreakMinutes)
+                .netWorkMinutes(netWorkMinutes)
                 .build();
     }
 }
