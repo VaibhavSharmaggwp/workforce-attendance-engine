@@ -28,6 +28,6 @@ spring:
     baseline-on-migrate: true
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:5e58bb32852e173a0b6dabe03e6e5b28894f588ecdf1ed247438cfdb9fafc72028bce5a34cb4ead22d7460a788ddfcbd0c18d894b07306ec1c0d494ae0fde6c2}
   access-token-expiration: 900000 # 15 minutes in milliseconds
   refresh-token-expiration: 604800000 # 7 days in milliseconds

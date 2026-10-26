@@ -4,6 +4,8 @@ import com.techviista.attendance.attendance.AttendanceStatus;
 import com.techviista.attendance.attendance.dto.AttendanceResponse;
 import com.techviista.attendance.attendance.service.AttendanceService;
 import com.techviista.attendance.common.GlobalExceptionHandler;
+import com.techviista.attendance.employee.Employee;
+import com.techviista.attendance.employee.EmployeeRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,17 +14,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +54,29 @@ class AttendanceControllerTest {
 
     @BeforeEach
     void setUp() {
+        HandlerMethodArgumentResolver authPrincipalResolver = new HandlerMethodArgumentResolver() {
+            @Override
+            public boolean supportsParameter(MethodParameter parameter) {
+                return parameter.hasParameterAnnotation(AuthenticationPrincipal.class);
+            }
+
+            @Override
+            public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                          NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                String header = webRequest.getHeader("X-Employee-Id");
+                if (header != null && !header.isBlank()) {
+                    return Employee.builder()
+                            .id(UUID.fromString(header))
+                            .email("test@example.com")
+                            .role(EmployeeRole.EMPLOYEE)
+                            .build();
+                }
+                return null;
+            }
+        };
+
         mockMvc = MockMvcBuilders.standaloneSetup(attendanceController)
+                .setCustomArgumentResolvers(authPrincipalResolver)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
@@ -230,6 +262,62 @@ class AttendanceControllerTest {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.status", is(409)))
                     .andExpect(jsonPath("$.message", is("You have already checked out today.")));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/attendance/today")
+    class GetTodayAttendanceEndpointTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with today's attendance")
+        void getTodayAttendance_Success() throws Exception {
+            when(attendanceService.getTodayAttendance(eq(employeeId))).thenReturn(sampleResponse);
+
+            mockMvc.perform(get("/api/v1/attendance/today")
+                            .header("X-Employee-Id", employeeId.toString()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(attendanceId.toString())))
+                    .andExpect(jsonPath("$.status", is("WORKING")));
+
+            verify(attendanceService).getTodayAttendance(eq(employeeId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 BAD REQUEST when employee is unauthenticated")
+        void getTodayAttendance_Unauthenticated() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/today"))
+                    .andExpect(status().isBadRequest());
+
+            verifyNoInteractions(attendanceService);
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/attendance/history")
+    class GetHistoryEndpointTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with attendance history list")
+        void getHistory_Success() throws Exception {
+            when(attendanceService.getAttendanceHistory(eq(employeeId))).thenReturn(List.of(sampleResponse));
+
+            mockMvc.perform(get("/api/v1/attendance/history")
+                            .header("X-Employee-Id", employeeId.toString()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id", is(attendanceId.toString())))
+                    .andExpect(jsonPath("$[0].status", is("WORKING")));
+
+            verify(attendanceService).getAttendanceHistory(eq(employeeId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 BAD REQUEST when employee is unauthenticated")
+        void getHistory_Unauthenticated() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/history"))
+                    .andExpect(status().isBadRequest());
+
+            verifyNoInteractions(attendanceService);
         }
     }
 }

@@ -34,20 +34,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String userEmail = jwtService.extractEmail(jwt);
+        try {
+            final String userEmail = jwtService.extractEmail(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            Employee employee = employeeRepository.findByEmail(userEmail).orElse(null);
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                Employee employee = employeeRepository.findByEmail(userEmail).orElse(null);
 
-            if(employee != null && jwtService.isTokenValid(jwt, userEmail)){
-                // The user is valid. We assign their role (EMPLOYEE or MANAGER) to Spring Security.
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        employee, null, List.of(new SimpleGrantedAuthority("ROLE_" + employee.getRole().name()))
-                );
+                if(employee != null && jwtService.isTokenValid(jwt, userEmail)){
+                    // The user is valid. We assign their role (EMPLOYEE or MANAGER) to Spring Security.
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            employee, null, List.of(new SimpleGrantedAuthority("ROLE_" + employee.getRole().name()))
+                    );
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception ex) {
+            // Token is malformed, expired, or signature is invalid: proceed unauthenticated
         }
         filterChain.doFilter(request, response);
     }
