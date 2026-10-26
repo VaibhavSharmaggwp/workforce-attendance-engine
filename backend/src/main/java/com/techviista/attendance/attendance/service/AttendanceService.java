@@ -8,14 +8,15 @@ import com.techviista.attendance.employee.Employee;
 import com.techviista.attendance.repository.AttendanceRepository;
 import com.techviista.attendance.repository.BreakSessionRepository;
 import com.techviista.attendance.repository.EmployeeRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -111,6 +112,24 @@ public class AttendanceService {
         attendanceRepository.save(attendance);
 
         return mapToResponse(attendance);
+    }
+
+    @Transactional(readOnly = true)
+    public AttendanceResponse getTodayAttendance(UUID employeeId){
+        LocalDate today = LocalDate.now();
+
+        return attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, today)
+                .map(this:: mapToResponse) // Uses the mapping function we wrote earlier
+                .orElseThrow(()-> new NoSuchElementException("No attendance record found for today"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttendanceResponse> getAttendanceHistory(UUID employeeId){
+        List<Attendance> history = attendanceRepository.findByEmployeeIdOrderByWorkDateDesc(employeeId);
+
+        return history.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     // Helper method to fetch today's record

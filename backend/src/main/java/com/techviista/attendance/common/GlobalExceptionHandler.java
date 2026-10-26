@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.OffsetDateTime;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,6 +31,18 @@ public class GlobalExceptionHandler {
         );
         // PRD Rule: Return 400 for malformed/invalid input
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NoSuchElementException ex){
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        // PRD Rule: Return 404 for missing records
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     // A simple record acts as our Error DTO
