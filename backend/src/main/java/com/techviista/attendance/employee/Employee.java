@@ -37,7 +37,8 @@ public class Employee {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @org.hibernate.annotations.JdbcType(org.hibernate.dialect.type.PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "employee_role")
     private EmployeeRole role;
 
     @Builder.Default

@@ -35,7 +35,8 @@ public class Attendance {
     private OffsetDateTime checkOutAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @org.hibernate.annotations.JdbcType(org.hibernate.dialect.type.PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "attendance_status")
     private AttendanceStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
