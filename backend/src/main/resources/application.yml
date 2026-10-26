@@ -1,10 +1,20 @@
 spring:
   application:
     name: workforce-attendance-engine
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/ams_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -16,3 +26,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 900000 # 15 minutes in milliseconds
+  refresh-token-expiration: 604800000 # 7 days in milliseconds
