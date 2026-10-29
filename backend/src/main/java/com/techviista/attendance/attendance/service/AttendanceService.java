@@ -5,10 +5,12 @@ import com.techviista.attendance.attendance.AttendanceStatus;
 import com.techviista.attendance.attendance.BreakSession;
 import com.techviista.attendance.attendance.dto.AttendanceResponse;
 import com.techviista.attendance.employee.Employee;
+import com.techviista.attendance.events.AttendanceEvent;
 import com.techviista.attendance.repository.AttendanceRepository;
 import com.techviista.attendance.repository.BreakSessionRepository;
 import com.techviista.attendance.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +28,17 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final BreakSessionRepository breakSessionRepository;
     private final EmployeeRepository employeeRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
-    public AttendanceResponse checkIn(UUID employeeId){
+    public AttendanceResponse checkIn(UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(()-> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
         LocalDate today = LocalDate.now(); // We will make this timezone-aware later
 
         // PRD Rule: Reject duplicate check-ins
-        if(attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, today).isPresent()){
+        if (attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, today).isPresent()) {
             throw new IllegalStateException("You are already checked in for today.");
         }
 
@@ -47,17 +50,29 @@ public class AttendanceService {
                 .build();
 
         attendanceRepository.save(attendance);
-        return mapToResponse(attendance); // We will implement the mapping logic next
+
+        if (kafkaTemplate != null) {
+            AttendanceEvent event = new AttendanceEvent(
+                    employee.getId(),
+                    "CHECK_IN",
+                    attendance.getCheckInAt().toString()
+            );
+            // Send to a topic named "attendance-events"
+            kafkaTemplate.send("attendance-events", event);
+        }
+
+        return mapToResponse(attendance);
     }
+
     @Transactional
-    public AttendanceResponse startBreak(UUID employeeId){
+    public AttendanceResponse startBreak(UUID employeeId) {
         Attendance attendance = getTodayActiveAttendance(employeeId);
 
-        if(attendance.getStatus() != AttendanceStatus.WORKING){
+        if (attendance.getStatus() != AttendanceStatus.WORKING) {
             throw new IllegalStateException("Can only start a break while working.");
         }
 
-        if(breakSessionRepository.findByAttendanceIdAndEndedAtIsNull(attendance.getId()).isPresent()){
+        if (breakSessionRepository.findByAttendanceIdAndEndedAtIsNull(attendance.getId()).isPresent()) {
             throw new IllegalStateException("A break is already active.");
         }
 
@@ -74,11 +89,11 @@ public class AttendanceService {
     }
 
     @Transactional
-    public AttendanceResponse endBreak(UUID employeeId){
+    public AttendanceResponse endBreak(UUID employeeId) {
         Attendance attendance = getTodayActiveAttendance(employeeId);
 
         // PRD Rule: End break allowed only when a break is active
-        if(attendance.getStatus() != AttendanceStatus.ON_BREAK){
+        if (attendance.getStatus() != AttendanceStatus.ON_BREAK) {
             throw new IllegalStateException("You are not currently on a break.");
         }
 
@@ -115,16 +130,16 @@ public class AttendanceService {
     }
 
     @Transactional(readOnly = true)
-    public AttendanceResponse getTodayAttendance(UUID employeeId){
+    public AttendanceResponse getTodayAttendance(UUID employeeId) {
         LocalDate today = LocalDate.now();
 
         return attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, today)
-                .map(this:: mapToResponse) // Uses the mapping function we wrote earlier
-                .orElseThrow(()-> new NoSuchElementException("No attendance record found for today"));
+                .map(this::mapToResponse) // Uses the mapping function we wrote earlier
+                .orElseThrow(() -> new NoSuchElementException("No attendance record found for today"));
     }
 
     @Transactional(readOnly = true)
-    public List<AttendanceResponse> getAttendanceHistory(UUID employeeId){
+    public List<AttendanceResponse> getAttendanceHistory(UUID employeeId) {
         List<Attendance> history = attendanceRepository.findByEmployeeIdOrderByWorkDateDesc(employeeId);
 
         return history.stream()
@@ -133,7 +148,7 @@ public class AttendanceService {
     }
 
     // Helper method to fetch today's record
-    private Attendance getTodayActiveAttendance(UUID employeeId){
+    private Attendance getTodayActiveAttendance(UUID employeeId) {
         return attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, LocalDate.now())
                 .orElseThrow(() -> new IllegalStateException("No active attendance session for today."));
     }
@@ -141,7 +156,7 @@ public class AttendanceService {
     // This replaces the placeholder mapToResponse we wrote earlier
     private AttendanceResponse mapToResponse(Attendance attendance) {
         List<BreakSession> dailyBreaks = breakSessionRepository.findByAttendanceId(attendance.getId());
-        
+
         long totalBreakMinutes = 0;
         for (BreakSession b : dailyBreaks) {
             // PRD Rule: Recorded break time = sum of completed break durations
@@ -149,14 +164,14 @@ public class AttendanceService {
                 totalBreakMinutes += Duration.between(b.getStartedAt(), b.getEndedAt()).toMinutes();
             }
         }
-        
+
         long elapsedMinutes = 0;
         OffsetDateTime calculationEnd = (attendance.getCheckOutAt() != null) ? attendance.getCheckOutAt() : OffsetDateTime.now();
-        
+
         if (attendance.getCheckInAt() != null) {
             elapsedMinutes = Duration.between(attendance.getCheckInAt(), calculationEnd).toMinutes();
         }
-        
+
         // PRD Rule: Net work time = elapsed attendance time minus recorded break time. No negative values.
         long netWorkMinutes = Math.max(0, elapsedMinutes - totalBreakMinutes);
 

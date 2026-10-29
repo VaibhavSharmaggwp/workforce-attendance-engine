@@ -11,6 +11,7 @@
 [![Flyway](https://img.shields.io/badge/Flyway-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white)](https://kafka.apache.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 </div>
 
@@ -24,14 +25,15 @@ Engineered with scalability, auditability, and data integrity at its core, the p
 - **Immutable Attendance Records:** Precise clock-in, clock-out, break tracking, and session state machine validation.
 - **Strict Data Validation & Audit Trail:** Dedicated audit logs tracking retroactive adjustments, supervisory overrides, and manager approvals.
 - **Event-Driven Architecture:** Asynchronous event streaming via Apache Kafka for real-time notifications, downstream payroll triggers, and compliance alerts.
-- **High-Performance Caching:** Distributed state caching and rate-limiting powered by Redis.
+- **Distributed Rate Limiting & High-Performance Caching:** Distributed state caching and token-bucket rate limiting powered by Redis & Bucket4j.
+- **Analytics & Aggregation Engine:** High-performance SQL projections aggregating yearly/monthly net working hours, complete days, and incomplete days.
 - **Automated Calculation Engine:** Real-time computation of elapsed shift time, aggregated break duration, and net working minutes.
 
 ---
 
 ## 🏗️ Repository Architecture
 
-This repository adopts a modular monorepo structure separating the backend services from the forthcoming client application:
+This repository adopts a modular monorepo structure:
 
 ```text
 workforce-attendance-engine/
@@ -40,35 +42,53 @@ workforce-attendance-engine/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/techviista/attendance/
-│   │   │   │   ├── attendance/
-│   │   │   │   │   ├── dto/AttendanceResponse.java      # Response DTO with duration metrics
-│   │   │   │   │   ├── service/AttendanceService.java   # Attendance lifecycle & business logic
-│   │   │   │   │   ├── Attendance.java                  # Attendance entity
-│   │   │   │   │   ├── AttendanceStatus.java            # WORKING, ON_BREAK, COMPLETED, INCOMPLETE
-│   │   │   │   │   └── BreakSession.java                # Granular break session entity
+│   │   │   │   ├── admin/                           # Administrative management
+│   │   │   │   │   ├── AdminController/             # Employee provisioning & team overview APIs
+│   │   │   │   │   ├── adminService/                # Provisioning & administrative queries
+│   │   │   │   │   └── CreateEmployeeRequest.java
+│   │   │   │   ├── analytics/                       # Analytical summaries & dashboards
+│   │   │   │   │   ├── AnalyticsController.java     # Yearly overview endpoint
+│   │   │   │   │   ├── AnalyticsService.java        # Net hours & attendance aggregations
+│   │   │   │   │   └── YearlyOverviewDTO.java
+│   │   │   │   ├── attendance/                      # Core attendance domain
+│   │   │   │   │   ├── dto/AttendanceResponse.java  # Response DTO with duration metrics
+│   │   │   │   │   ├── dto/MonthlySummaryProjection # Database aggregation projection
+│   │   │   │   │   ├── service/AttendanceService.java# Shift lifecycle & event publishing
+│   │   │   │   │   ├── Attendance.java              # Attendance entity
+│   │   │   │   │   ├── AttendanceStatus.java        # WORKING, ON_BREAK, COMPLETED, INCOMPLETE
+│   │   │   │   │   └── BreakSession.java            # Granular break session entity
 │   │   │   │   ├── common/
-│   │   │   │   │   └── GlobalExceptionHandler.java      # Centralized error mapping (400, 409)
+│   │   │   │   │   └── GlobalExceptionHandler.java  # Centralized error mapping (400, 401, 409)
+│   │   │   │   ├── config/
+│   │   │   │   │   ├── JwtAuthenticationFilter.java # JWT extraction & token validation filter
+│   │   │   │   │   ├── JwtService.java              # JWT generation & parsing
+│   │   │   │   │   ├── SecurityConfig.java          # Spring Security 6 stateless filter chain
+│   │   │   │   │   └── WebMvcConfig.java            # WebMvcConfigurer interceptor registry
 │   │   │   │   ├── controller/
-│   │   │   │   │   └── AttendanceController.java        # REST API endpoints
+│   │   │   │   │   └── AttendanceController.java    # Employee REST API endpoints
 │   │   │   │   ├── employee/
-│   │   │   │   │   ├── Employee.java                    # Employee domain model
-│   │   │   │   │   └── EmployeeRole.java                # EMPLOYEE, MANAGER, ADMIN
-│   │   │   │   ├── repository/                          # Spring Data JPA repositories
+│   │   │   │   │   ├── Employee.java                # Employee domain model
+│   │   │   │   │   └── EmployeeRole.java            # EMPLOYEE, MANAGER, ADMIN
+│   │   │   │   ├── events/                          # Event streaming (Apache Kafka)
+│   │   │   │   │   ├── AttendanceEvent.java         # Event payload record
+│   │   │   │   │   └── NotificationConsumer.java    # Consumer listeners
+│   │   │   │   ├── ratelimit/                       # Rate limiting (Bucket4j + Redis)
+│   │   │   │   │   ├── RateLimitInterceptor.java    # HandlerInterceptor enforcing quotas
+│   │   │   │   │   └── RedisRateLimitConfig.java    # Distributed Lettuce ProxyManager
+│   │   │   │   ├── repository/                      # Spring Data JPA repositories
 │   │   │   │   │   ├── AttendanceRepository.java
 │   │   │   │   │   ├── BreakSessionRepository.java
 │   │   │   │   │   └── EmployeeRepository.java
-│   │   │   │   └── AttendanceApplication.java           # Spring Boot application entry point
+│   │   │   │   └── AttendanceApplication.java       # Spring Boot application entry point
 │   │   │   └── resources/
-│   │   │       ├── application.yml                      # Parameterized runtime configuration
-│   │   │       └── db/migration/V1__init_schema.sql     # Flyway SQL schema versioning
+│   │   │       ├── application.yml                  # Parameterized runtime configuration
+│   │   │       └── db/migration/V1__init_schema.sql # Flyway SQL schema versioning
 │   │   └── test/
-│   │       └── java/com/techviista/attendance/
-│   │           ├── attendance/service/AttendanceServiceTest.java  # Unit tests (14 test cases)
-│   │           ├── controller/AttendanceControllerTest.java        # Web layer integration tests (11 test cases)
-│   │           └── AttendanceApplicationTests.java                 # Context loads test
+│   │       └── java/com/techviista/attendance/      # 49 automated unit & integration tests
 │   ├── .env.example          # Sample environment variable definitions
-│   ├── mvnw & mvnw.cmd       # Cross-platform Maven executable scripts
+│   ├── mvnw & mvnw.cmd       # Cross-platform Maven wrapper scripts
 │   └── pom.xml               # Maven project dependencies and build plugins
+├── docker-compose.yml        # Multi-container orchestration (Redis 7)
 ├── frontend/                 # Client SPA (Dashboard & Employee Portal - Coming Soon)
 │   └── README.md
 ├── .gitignore                # Enterprise-grade git ignore filters
@@ -79,53 +99,33 @@ workforce-attendance-engine/
 
 ## 📡 REST API Reference
 
-All endpoints currently authenticate via the `X-Employee-Id` header (temporary during core development; will transition to OAuth2 session extraction in Milestone 5).
+All protected endpoints authenticate via `Bearer <JWT_TOKEN>` (or extracted `@AuthenticationPrincipal`).
 
-Base URL: `/api/v1/attendance`
+### 1. Attendance Lifecycle (`/api/v1/attendance`)
 
 | Method | Endpoint | Description | Success Status | Error Scenarios |
 | :--- | :--- | :--- | :---: | :--- |
-| `POST` | `/check-in` | Start daily shift session | `200 OK` | `400` (Unknown employee)<br>`409` (Already checked in today) |
+| `POST` | `/check-in` | Start daily shift session & emit Kafka event | `200 OK` | `400` (Unknown employee)<br>`409` (Already checked in today) |
 | `POST` | `/breaks/start` | Start an active break | `200 OK` | `409` (Not working, break already active, or no shift) |
 | `POST` | `/breaks/end` | Resume work after break | `200 OK` | `409` (Not on break, or no active break record found) |
 | `POST` | `/check-out` | End daily shift session | `200 OK` | `409` (Already checked out, or break is still active) |
+| `GET` | `/today` | Fetch today's current shift record | `200 OK` | `404` (No record for today) |
+| `GET` | `/history` | Fetch complete shift history for employee | `200 OK` | `401` (Unauthorized) |
 
-### Sample Response (`AttendanceResponse`)
+### 2. Administrative Operations (`/api/v1/admin`)
 
-```json
-{
-  "id": "c1f7b022-7f23-424a-a236-4d2b406e2e50",
-  "status": "WORKING",
-  "checkInAt": "2026-10-25T09:00:00+05:30",
-  "checkOutAt": null,
-  "elapsedMinutes": 240,
-  "breakMinutes": 30,
-  "netWorkMinutes": 210
-}
-```
+*Restricted to users with role `MANAGER` or `ADMIN`.*
 
-### Standardized Error Format (`ErrorResponse`)
+| Method | Endpoint | Description | Success Status | Error Scenarios |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/employees` | Provision a new employee | `200 OK` | `403` (Forbidden)<br>`409` (Email already exists) |
+| `GET` | `/attendance/today` | Fetch team-wide attendance for today | `200 OK` | `403` (Forbidden) |
 
-```json
-{
-  "status": 409,
-  "message": "Cannot check out while a break is active. Please end your break first.",
-  "timestamp": "2026-10-25T13:30:00+05:30"
-}
-```
+### 3. Analytics & Reporting (`/api/v1/analytics`)
 
----
-
-## 🗄️ Database & Schema Design
-
-Database migrations are strictly version-controlled using **Flyway**, ensuring identical schemas across Development, Staging, and Production environments.
-
-### Core Domain Entities
-
-1. **`employees`**: Stores employee profiles, corporate email, role-based access (`EMPLOYEE`, `MANAGER`, `ADMIN`), and authentication provider linkages.
-2. **`attendance_sessions`**: Tracks daily work shifts, check-in/out timestamps, unique constraints per employee date, and attendance statuses (`WORKING`, `ON_BREAK`, `COMPLETED`, `INCOMPLETE`).
-3. **`break_sessions`**: High-granularity break session tracking enforcing single active break per shift constraints.
-4. **`audit_entries`**: Immutable JSONB-backed audit logs capturing state transitions, administrative modifications, actor IDs, and compliance reasons.
+| Method | Endpoint | Description | Success Status | Error Scenarios |
+| :--- | :--- | :--- | :---: | :--- |
+| `GET` | `/yearly-overview` | Yearly attendance summary & monthly breakdowns (`?year=YYYY`) | `200 OK` | `401` (Unauthorized) |
 
 ---
 
@@ -134,10 +134,11 @@ Database migrations are strictly version-controlled using **Flyway**, ensuring i
 ### Prerequisites
 
 - **Java Development Kit (JDK):** Version 17 (or compatible 17+ LTS)
-- **Database:** PostgreSQL 14+
-- **In-Memory Cache:** Redis 6+ (Optional for core startup)
-- **Message Broker:** Apache Kafka (Optional for core startup)
+- **Database:** PostgreSQL 14+ (default: `localhost:5433`)
+- **Distributed Cache / Rate Limiting:** Redis 7+ (via Docker or local service)
+- **Message Broker:** Apache Kafka (default: `localhost:9092`)
 - **Build Tool:** Apache Maven 3.9+ (or use the bundled `./mvnw`)
+- **Docker:** Optional but recommended for Redis / infrastructure
 
 ---
 
@@ -156,12 +157,24 @@ Database migrations are strictly version-controlled using **Flyway**, ensuring i
    cp .env.example .env
    ```
 
-3. Provide your local environment credentials in `.env` (or pass as system environment variables):
+3. Provide your local environment credentials in `.env` (or set as system environment variables):
    ```bash
    SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/ams_db
    SPRING_DATASOURCE_USERNAME=postgres
    SPRING_DATASOURCE_PASSWORD=your_secure_password
+   SPRING_DATA_REDIS_HOST=localhost
+   SPRING_DATA_REDIS_PORT=6379
+   SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
    ```
+
+---
+
+### Infrastructure Startup (Docker Compose)
+
+Start the Redis rate-limiting service via Docker Compose:
+```bash
+docker compose up -d redis
+```
 
 ---
 
@@ -186,7 +199,7 @@ Database migrations are strictly version-controlled using **Flyway**, ensuring i
 ```
 
 > [!NOTE]
-> The automated test suite executes 25 unit and web-layer integration tests covering all state machine transitions, edge cases, duration calculations, and HTTP error responses with **0 failures and 0 errors**.
+> The automated test suite executes **49 unit, security, and web-layer integration tests** covering all state machine transitions, JWT filters, rate limiting, Kafka event generation, and HTTP error responses with **0 failures and 0 errors**.
 
 #### 3. Run the Application Locally
 ```bash
@@ -207,10 +220,10 @@ The application will start on port `8080` (default) and execute Flyway migration
 - [x] **Milestone 2:** Flyway schema migration for Core Entities (Employees, Sessions, Breaks, Audit).
 - [x] **Milestone 3:** Project Lombok integration & entity mapping.
 - [x] **Milestone 4:** Clock-In / Clock-Out / Break lifecycle REST APIs & duration calculation engine.
-- [x] **Milestone 5:** Comprehensive unit & integration testing suite (25 automated test cases).
-- [ ] **Milestone 6:** Spring Security 6 & OAuth2 Client token integration.
-- [ ] **Milestone 7:** Redis distributed session management & anti-tamper rate limiting.
-- [ ] **Milestone 8:** Kafka event publishing for workforce audit triggers.
+- [x] **Milestone 5:** Comprehensive unit & integration testing suite.
+- [x] **Milestone 6:** Spring Security 6, JWT filter integration & Method Security (`@EnableMethodSecurity`).
+- [x] **Milestone 7:** Redis distributed session management, Bucket4j anti-tamper rate limiting & Docker container support.
+- [x] **Milestone 8:** Kafka event streaming (`attendance-events`) for workforce audit triggers.
 - [ ] **Milestone 9:** Frontend Web Client (React / Vite dashboard).
 
 ---
