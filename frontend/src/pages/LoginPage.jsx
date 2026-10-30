@@ -62,30 +62,26 @@ export const LoginPage = () => {
         {/* Left: Sign-in Form */}
         <div style={{ padding: '44px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-              <div
+            {/* Company Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+              <img
+                src="/logo.jpg"
+                alt="Eduqynt Techviista Pvt. Ltd."
                 style={{
-                  width: 34,
-                  height: 34,
+                  width: 44,
+                  height: 44,
                   borderRadius: '50%',
-                  backgroundColor: '#0F172A',
+                  objectFit: 'cover',
                   border: '1.5px solid #2563EB',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.2)',
+                  flexShrink: 0,
                 }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6L12 2L20 6V18L12 22L4 18V6Z" stroke="#2563EB" strokeWidth="2" strokeLinejoin="round"/>
-                  <path d="M8 10L12 7L16 10V15L12 17L8 15V10Z" fill="#38BDF8"/>
-                </svg>
-              </div>
+              />
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-charcoal)' }}>
-                  Attendance
+                <div style={{ fontWeight: 800, fontSize: '0.96rem', color: 'var(--color-charcoal)', letterSpacing: '-0.01em' }}>
+                  Attendance Portal
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--color-stone)', marginTop: -2 }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)', marginTop: -1 }}>
                   Eduqynt Techviista Pvt. Ltd.
                 </div>
               </div>
@@ -311,62 +307,80 @@ export const LoginPage = () => {
             </div>
 
             {/* Instant Demo Switcher / Benchmark controls */}
-            <div style={{ marginTop: 24, padding: '12px 14px', backgroundColor: '#F7F3EE', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--color-stone)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Shield size={13} color="var(--color-coral)" />
+            <div style={{ marginTop: 24, padding: '14px 16px', backgroundColor: '#F7F3EE', borderRadius: 10, border: '1px solid var(--color-border)' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--color-stone)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Shield size={14} color="var(--color-coral)" />
                 Quick Test Accounts (One-Click Sign-in)
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <button
                   type="button"
-                  onClick={() => loginAsDemo(MOCK_EMPLOYEES[0])}
+                  onClick={async () => {
+                    await loginAsDemo(MOCK_EMPLOYEES[0]);
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    border: '1px solid #D6CEBE',
+                    gap: 8,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    border: '1.5px solid #D6CEBE',
                     backgroundColor: '#FFFEFC',
                     color: 'var(--color-charcoal)',
-                    fontSize: '0.76rem',
+                    fontSize: '0.78rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
+                    transition: 'all 0.15s ease',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-coral)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#D6CEBE')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-coral)';
+                    e.currentTarget.style.backgroundColor = '#FFF8F5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#D6CEBE';
+                    e.currentTarget.style.backgroundColor = '#FFFEFC';
+                  }}
                 >
-                  <UserCheck size={14} color="#1D8350" />
+                  <UserCheck size={16} color="#1D8350" style={{ flexShrink: 0 }} />
                   <div>
-                    <div>Ananya Sharma</div>
-                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 400 }}>Employee</div>
+                    <div style={{ fontWeight: 700, color: 'var(--color-charcoal)' }}>Ananya Sharma</div>
+                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500 }}>Employee</div>
                   </div>
                 </button>
                 <button
                   type="button"
-                  onClick={() => loginAsDemo(MOCK_EMPLOYEES[1])}
+                  onClick={async () => {
+                    await loginAsDemo(MOCK_EMPLOYEES[1]);
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    border: '1px solid #D6CEBE',
+                    gap: 8,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    border: '1.5px solid #D6CEBE',
                     backgroundColor: '#FFFEFC',
                     color: 'var(--color-charcoal)',
-                    fontSize: '0.76rem',
+                    fontSize: '0.78rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
+                    transition: 'all 0.15s ease',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-amber)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#D6CEBE')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-amber)';
+                    e.currentTarget.style.backgroundColor = '#FFFDF5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#D6CEBE';
+                    e.currentTarget.style.backgroundColor = '#FFFEFC';
+                  }}
                 >
-                  <Shield size={14} color="#EFA537" />
+                  <Shield size={16} color="#EFA537" style={{ flexShrink: 0 }} />
                   <div>
-                    <div>Rahul Khanna</div>
-                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 400 }}>Manager</div>
+                    <div style={{ fontWeight: 700, color: 'var(--color-charcoal)' }}>Rahul Khanna</div>
+                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500 }}>Manager</div>
                   </div>
                 </button>
               </div>
@@ -394,23 +408,28 @@ export const LoginPage = () => {
           }}
         >
           <div>
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                backgroundColor: '#0F172A',
-                border: '2px solid #2563EB',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 28,
-              }}
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <path d="M4 6L12 2L20 6V18L12 22L4 18V6Z" stroke="#2563EB" strokeWidth="2" strokeLinejoin="round"/>
-                <path d="M8 10L12 7L16 10V15L12 17L8 15V10Z" fill="#38BDF8"/>
-              </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+              <img
+                src="/logo.jpg"
+                alt="Eduqynt Techviista"
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #2563EB',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+                  flexShrink: 0,
+                }}
+              />
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#FFFEFC', letterSpacing: '-0.01em' }}>
+                  Eduqynt Techviista
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#B8B0A6' }}>
+                  Workforce Attendance Engine
+                </div>
+              </div>
             </div>
 
             <h3 style={{ fontSize: '1.45rem', fontWeight: 800, lineHeight: 1.3, letterSpacing: '-0.02em', color: '#FFFEFC' }}>
@@ -492,3 +511,4 @@ export const LoginPage = () => {
     </div>
   );
 };
+

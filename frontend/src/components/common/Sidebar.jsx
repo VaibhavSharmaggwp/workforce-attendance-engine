@@ -18,13 +18,13 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
   }
 
   // Switch between Ananya and Rahul for instantaneous testing
-  const handleToggleDemoRole = () => {
+  const handleToggleDemoRole = async () => {
     if (user?.role === 'MANAGER') {
       const emp = MOCK_EMPLOYEES.find(e => e.role === 'EMPLOYEE') || MOCK_EMPLOYEES[0];
-      loginAsDemo(emp);
+      await loginAsDemo(emp);
     } else {
       const mgr = MOCK_EMPLOYEES.find(e => e.role === 'MANAGER') || MOCK_EMPLOYEES[1];
-      loginAsDemo(mgr);
+      await loginAsDemo(mgr);
     }
   };
 
@@ -52,27 +52,21 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
       <div>
         {/* Brand header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 8px 24px', borderBottom: '1px solid #302A25' }}>
-          <div
+          <img
+            src="/logo.jpg"
+            alt="Eduqynt Techviista"
             style={{
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
-              backgroundColor: '#0F172A',
+              objectFit: 'cover',
               border: '1.5px solid #2563EB',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
               flexShrink: 0,
             }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6L12 2L20 6V18L12 22L4 18V6Z" stroke="#2563EB" strokeWidth="2" strokeLinejoin="round"/>
-              <path d="M8 10L12 7L16 10V15L12 17L8 15V10Z" fill="#38BDF8"/>
-            </svg>
-          </div>
+          />
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.98rem', letterSpacing: '-0.01em', color: '#FFFEFC' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.98rem', letterSpacing: '-0.01em', color: '#FFFEFC' }}>
               Attendance
             </div>
             <div style={{ fontSize: '0.72rem', color: '#9B938B', marginTop: -2 }}>
@@ -231,3 +225,4 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
     </aside>
   );
 };
+

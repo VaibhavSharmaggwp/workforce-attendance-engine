@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, getAccessToken, setTokens, clearTokens, getStoredUser, setStoredUser } from '../services/api';
+import {
+  api,
+  getAccessToken,
+  setTokens,
+  clearTokens,
+  getStoredUser,
+  setStoredUser,
+  isDemoToken,
+} from '../services/api';
 import { MOCK_EMPLOYEES } from '../services/mockData';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => getStoredUser() || MOCK_EMPLOYEES[0]); // Default to Ananya Sharma
+  const [user, setUser] = useState(() => getStoredUser());
   const [token, setToken] = useState(() => getAccessToken());
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -35,9 +43,9 @@ export const AuthProvider = ({ children }) => {
           setStoredUser(profile);
         })
         .catch(() => {
-          // Fallback to default employee
-          setUser(MOCK_EMPLOYEES[0]);
-          setStoredUser(MOCK_EMPLOYEES[0]);
+          const fallback = MOCK_EMPLOYEES[0];
+          setUser(fallback);
+          setStoredUser(fallback);
         });
     }
   }, []);
@@ -68,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       // Offline fallback: check mock accounts
       const matched = MOCK_EMPLOYEES.find(e => e.email.toLowerCase() === email.trim().toLowerCase());
       if (matched) {
-        const dummyToken = 'mock-jwt-token-' + matched.id;
+        const dummyToken = 'demo-jwt-token-' + matched.id;
         setTokens(dummyToken, dummyToken);
         setToken(dummyToken);
         setUser(matched);
@@ -83,13 +91,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginAsDemo = (employee) => {
+  const loginAsDemo = async (employee) => {
+    setLoading(true);
+    setAuthError(null);
+    try {
+      // 1. Attempt backend login to get a real HMAC-signed JWT if backend is reachable
+      const res = await api.login(employee.email, 'demo-password');
+      if (res && res.accessToken) {
+        setTokens(res.accessToken, res.refreshToken);
+        setToken(res.accessToken);
+        setUser(res.user || employee);
+        setStoredUser(res.user || employee);
+        return res.user || employee;
+      }
+    } catch (e) {
+      // Backend not running or unseeded — fall through to local demo mode
+      console.info('Backend unreachable, using offline demo mode for persona:', employee.fullName);
+    } finally {
+      setLoading(false);
+    }
+
+    // 2. Safe demo token for offline operation
     const dummyToken = 'demo-jwt-token-' + employee.id;
     setTokens(dummyToken, dummyToken);
     setToken(dummyToken);
     setUser(employee);
     setStoredUser(employee);
     setAuthError(null);
+    return employee;
   };
 
   const logout = () => {
@@ -104,7 +133,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
-        isAuthenticated: !!user,
+        isAuthenticated: Boolean(user && token),
         loading,
         authError,
         setAuthError,
