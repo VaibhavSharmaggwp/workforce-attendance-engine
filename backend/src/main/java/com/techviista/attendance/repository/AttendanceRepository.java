@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     Optional<Attendance> findByEmployeeIdAndWorkDate(UUID employeeId, LocalDate workDate);
     List<Attendance> findByEmployeeIdOrderByWorkDateDesc(UUID employeeId);
+    List<Attendance> findByWorkDate(LocalDate workDate);
+    List<Attendance> findByWorkDateBetweenOrderByWorkDateDesc(LocalDate startDate, LocalDate endDate);
 
     @Query(value = """
         WITH break_sums AS (

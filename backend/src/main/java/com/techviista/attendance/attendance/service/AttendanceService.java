@@ -158,11 +158,22 @@ public class AttendanceService {
         List<BreakSession> dailyBreaks = breakSessionRepository.findByAttendanceId(attendance.getId());
 
         long totalBreakMinutes = 0;
+        List<AttendanceResponse.BreakDetailDTO> breakDTOs = new java.util.ArrayList<>();
         for (BreakSession b : dailyBreaks) {
+            long duration = 0;
             // PRD Rule: Recorded break time = sum of completed break durations
             if (b.getEndedAt() != null) {
-                totalBreakMinutes += Duration.between(b.getStartedAt(), b.getEndedAt()).toMinutes();
+                duration = Duration.between(b.getStartedAt(), b.getEndedAt()).toMinutes();
+                totalBreakMinutes += duration;
+            } else if (b.getStartedAt() != null) {
+                duration = Duration.between(b.getStartedAt(), OffsetDateTime.now()).toMinutes();
             }
+            breakDTOs.add(AttendanceResponse.BreakDetailDTO.builder()
+                    .id(b.getId())
+                    .startedAt(b.getStartedAt())
+                    .endedAt(b.getEndedAt())
+                    .durationMinutes(duration)
+                    .build());
         }
 
         long elapsedMinutes = 0;
@@ -177,12 +188,14 @@ public class AttendanceService {
 
         return AttendanceResponse.builder()
                 .id(attendance.getId())
+                .workDate(attendance.getWorkDate())
                 .status(attendance.getStatus())
                 .checkInAt(attendance.getCheckInAt())
                 .checkOutAt(attendance.getCheckOutAt())
                 .elapsedMinutes(elapsedMinutes)
                 .breakMinutes(totalBreakMinutes)
                 .netWorkMinutes(netWorkMinutes)
+                .breaks(breakDTOs)
                 .build();
     }
 }

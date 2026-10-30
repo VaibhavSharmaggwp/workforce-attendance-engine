@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Warm neutrals */
+  --color-charcoal: #1F1B18;
+  --color-stone: #6B625A;
+  --color-stone-light: #9B938B;
+  --color-border: #E8E2D9;
+  --color-border-subtle: #F0ECE4;
+  --color-warm-white: #F7F3EE;
+  --color-surface: #FFFEFC;
+  --color-surface-hover: #FDFBF8;
+
+  /* Status and action accents */
+  --color-coral: #D9502A;
+  --color-coral-hover: #C24320;
+  --color-coral-light: #FDEEEA;
+
+  --color-emerald: #1D8350;
+  --color-emerald-light: #EBF7F0;
+  --color-emerald-text: #14613B;
+
+  --color-amber: #EFA537;
+  --color-amber-hover: #DC9226;
+  --color-amber-light: #FEF6EB;
+  --color-amber-text: #965B0A;
+
+  --color-rose: #BF3A4C;
+  --color-rose-light: #FCECEF;
+  --color-rose-text: #8E2030;
+
+  --color-blue: #2563EB;
+  --color-blue-light: #EFF6FF;
+
+  /* Radii & Shadows as per PRD UI */
+  --radius-sm: 6px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+
+  --shadow-subtle: 0 1px 3px rgba(31, 27, 24, 0.04);
+  --shadow-card: 0 2px 8px rgba(31, 27, 24, 0.06);
+  --shadow-dropdown: 0 8px 24px rgba(31, 27, 24, 0.08);
+  --shadow-modal: 0 16px 36px rgba(31, 27, 24, 0.16);
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-warm-white);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Tabular digits on all times, durations, dates and counters */
+.tabular-numbers,
+.time-display,
+.timer-text,
+.stat-digit,
+.duration-chip {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-warm-white);
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D2C7;
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4BCB0;
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 2px;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.pulse-dot {
+  animation: pulseGlow 2s infinite ease-in-out;
+}

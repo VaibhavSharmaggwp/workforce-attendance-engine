@@ -201,7 +201,7 @@ docker compose up -d redis
 > [!NOTE]
 > The automated test suite executes **49 unit, security, and web-layer integration tests** covering all state machine transitions, JWT filters, rate limiting, Kafka event generation, and HTTP error responses with **0 failures and 0 errors**.
 
-#### 3. Run the Application Locally
+#### 3. Run the Backend Locally
 ```bash
 # Windows
 .\mvnw.cmd spring-boot:run
@@ -212,6 +212,14 @@ docker compose up -d redis
 
 The application will start on port `8080` (default) and execute Flyway migrations against the configured database automatically.
 
+#### 4. Run the React Web UI
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open `http://localhost:3000` in your browser.
+
 ---
 
 ## 🗺️ Roadmap & Milestones
@@ -220,11 +228,11 @@ The application will start on port `8080` (default) and execute Flyway migration
 - [x] **Milestone 2:** Flyway schema migration for Core Entities (Employees, Sessions, Breaks, Audit).
 - [x] **Milestone 3:** Project Lombok integration & entity mapping.
 - [x] **Milestone 4:** Clock-In / Clock-Out / Break lifecycle REST APIs & duration calculation engine.
-- [x] **Milestone 5:** Comprehensive unit & integration testing suite.
+- [x] **Milestone 5:** Comprehensive unit & integration testing suite (49 automated tests).
 - [x] **Milestone 6:** Spring Security 6, JWT filter integration & Method Security (`@EnableMethodSecurity`).
 - [x] **Milestone 7:** Redis distributed session management, Bucket4j anti-tamper rate limiting & Docker container support.
 - [x] **Milestone 8:** Kafka event streaming (`attendance-events`) for workforce audit triggers.
-- [ ] **Milestone 9:** Frontend Web Client (React / Vite dashboard).
+- [x] **Milestone 9:** Frontend Web Client (React / Vite dashboard according to PRD & UI/UX Design Proposal).
 
 ---
 
