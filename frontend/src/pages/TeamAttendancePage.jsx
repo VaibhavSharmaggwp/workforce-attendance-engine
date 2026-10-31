@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api, buildTeamDashboard, getProvisionedTeam, clearProvisionedTeam } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { StatusBadge } from '../components/common/StatusBadge';
-import { MOCK_TEAM_TODAY } from '../services/mockData';
 import {
   Search,
   UserPlus,
@@ -21,13 +20,15 @@ import {
   Bell,
   BellOff,
   Zap,
+  Users,
+  RotateCcw,
 } from 'lucide-react';
 
 export const TeamAttendancePage = () => {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-  const [dashboard, setDashboard] = useState(MOCK_TEAM_TODAY);
+  const [dashboard, setDashboard] = useState(() => buildTeamDashboard(getProvisionedTeam()));
   const [teamEngagement, setTeamEngagement] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,10 +53,10 @@ export const TeamAttendancePage = () => {
     try {
       setLoading(true);
       const res = await api.getAdminTeamToday();
-      if (res && res.members && res.members.length > 0) {
+      if (res && Array.isArray(res.members)) {
         setDashboard(res);
       } else {
-        setDashboard(MOCK_TEAM_TODAY);
+        setDashboard(buildTeamDashboard(getProvisionedTeam()));
       }
       const eng = await api.getTeamEngagement();
       if (eng) setTeamEngagement(eng);
@@ -65,7 +66,7 @@ export const TeamAttendancePage = () => {
         setEmailAlertsEnabled(alertSettings.emailAlertsEnabled);
       }
     } catch (err) {
-      setDashboard(MOCK_TEAM_TODAY);
+      setDashboard(buildTeamDashboard(getProvisionedTeam()));
     } finally {
       setLoading(false);
     }
@@ -120,49 +121,25 @@ export const TeamAttendancePage = () => {
     setIsProvisioning(true);
     try {
       await api.provisionEmployee({
-        fullName: newFullName,
-        email: newEmail,
+        fullName: newFullName.trim(),
+        email: newEmail.trim().toLowerCase(),
         role: newRole,
       });
       addToast({
         type: 'success',
         title: 'Employee provisioned',
-        message: `${newFullName} has been added to the team roster.`,
+        message: `${newFullName} (${newEmail}) has been provisioned. They can now sign in to record attendance.`,
       });
       setShowAddModal(false);
       setNewFullName('');
       setNewEmail('');
-      fetchTeamData();
+      await fetchTeamData();
     } catch (err) {
-      // Mock fallback
-      const newEmp = {
-        employeeId: 'emp-' + Date.now(),
-        fullName: newFullName,
-        email: newEmail,
-        role: newRole,
-        status: 'NOT_CHECKED_IN',
-        checkInAt: null,
-        checkOutAt: null,
-        breakCount: 0,
-        totalBreakMinutes: 0,
-        netWorkMinutes: 0,
-        netWorkFormatted: '—',
-        breaks: [],
-      };
-      setDashboard((prev) => ({
-        ...prev,
-        totalEmployees: prev.totalEmployees + 1,
-        notCheckedInCount: prev.notCheckedInCount + 1,
-        members: [...prev.members, newEmp],
-      }));
       addToast({
-        type: 'success',
-        title: 'Employee provisioned',
-        message: `${newFullName} has been added to the team roster.`,
+        type: 'error',
+        title: 'Provisioning error',
+        message: err.message || 'Failed to provision employee.',
       });
-      setShowAddModal(false);
-      setNewFullName('');
-      setNewEmail('');
     } finally {
       setIsProvisioning(false);
     }
@@ -265,6 +242,41 @@ export const TeamAttendancePage = () => {
             <FileSpreadsheet size={15} />
             <span>Sales Sheets Hook</span>
           </button>
+
+          {/* Clear Test Roster Button (Allows manager to test from zero employees) */}
+          {dashboard.members && dashboard.members.length > 0 && (
+            <button
+              onClick={() => {
+                clearProvisionedTeam();
+                setDashboard(buildTeamDashboard([]));
+                addToast({
+                  type: 'info',
+                  title: 'Roster Reset',
+                  message: 'Team roster cleared. You can now provision fresh test employees from scratch.',
+                });
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: 'transparent',
+                color: 'var(--color-stone)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-control)',
+                padding: '8px 12px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              title="Clear roster to test adding from scratch"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F7F3EE')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <RotateCcw size={14} />
+              <span>Clear roster</span>
+            </button>
+          )}
 
           {/* Provision Employee Button */}
           <button
@@ -488,7 +500,58 @@ export const TeamAttendancePage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredMembers.map((m) => (
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '54px 20px', color: 'var(--color-stone)' }}>
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: '#F0ECE4',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--color-stone)',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <Users size={24} />
+                    </div>
+                    <div style={{ fontSize: '1.02rem', fontWeight: 700, color: 'var(--color-charcoal)', marginBottom: 4 }}>
+                      No employees in team roster yet
+                    </div>
+                    <p style={{ fontSize: '0.84rem', color: '#8E857C', maxWidth: 420, margin: '0 auto 18px', lineHeight: 1.45 }}>
+                      {searchQuery || statusFilter !== 'ALL'
+                        ? 'No team members match your current filter.'
+                        : 'Your team roster is clean. Click "Provision employee" above to register your first team member with their corporate email.'}
+                    </p>
+                    {statusFilter === 'ALL' && !searchQuery && (
+                      <button
+                        onClick={() => setShowAddModal(true)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          backgroundColor: 'var(--color-coral)',
+                          color: '#FFFEFC',
+                          border: 'none',
+                          borderRadius: 'var(--radius-control)',
+                          padding: '9px 18px',
+                          fontSize: '0.84rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(217, 80, 42, 0.2)',
+                        }}
+                      >
+                        <UserPlus size={15} />
+                        <span>Provision first employee</span>
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((m) => (
                 <tr
                   key={m.employeeId}
                   style={{ borderBottom: '1px solid var(--color-border-subtle)', transition: 'background 0.15s' }}
@@ -631,7 +694,7 @@ export const TeamAttendancePage = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

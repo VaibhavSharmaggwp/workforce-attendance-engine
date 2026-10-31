@@ -31,8 +31,101 @@ export const isDemoToken = (token) => {
   return !token || token.startsWith('demo-') || token.startsWith('mock-');
 };
 
-// In-memory session state for demo actions when offline
-let localDemoAttendance = null;
+// Provisioned team storage for clean testing and offline persistence
+export const PROVISIONED_TEAM_KEY = 'ams_provisioned_team';
+
+export const getProvisionedTeam = () => {
+  try {
+    const raw = localStorage.getItem(PROVISIONED_TEAM_KEY);
+    if (raw) return JSON.parse(raw);
+    return [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveProvisionedMember = (member) => {
+  const current = getProvisionedTeam();
+  const idx = current.findIndex(m => m.email?.toLowerCase() === member.email?.toLowerCase());
+  if (idx >= 0) {
+    current[idx] = { ...current[idx], ...member };
+  } else {
+    current.push(member);
+  }
+  localStorage.setItem(PROVISIONED_TEAM_KEY, JSON.stringify(current));
+};
+
+export const clearProvisionedTeam = () => {
+  localStorage.removeItem(PROVISIONED_TEAM_KEY);
+};
+
+export const buildTeamDashboard = (membersList = []) => {
+  const total = membersList.length;
+  let working = 0;
+  let onBreak = 0;
+  let checkedOut = 0;
+  let notCheckedIn = 0;
+  let incomplete = 0;
+  let overBreak = 0;
+
+  membersList.forEach((m) => {
+    if (m.status === 'WORKING') working++;
+    else if (m.status === 'ON_BREAK') onBreak++;
+    else if (m.status === 'COMPLETED') checkedOut++;
+    else if (m.status === 'INCOMPLETE') incomplete++;
+    else notCheckedIn++;
+
+    if (m.breakOverOneHour) overBreak++;
+  });
+
+  return {
+    date: new Date().toISOString().split('T')[0],
+    totalEmployees: total,
+    workingCount: working,
+    onBreakCount: onBreak,
+    checkedOutCount: checkedOut,
+    notCheckedInCount: notCheckedIn,
+    incompleteCount: incomplete,
+    overBreakCount: overBreak,
+    members: membersList,
+  };
+};
+
+// In-memory per-user session state for demo actions when offline
+const localDemoAttendances = {};
+
+const getUserKey = () => {
+  const u = getStoredUser();
+  return u?.email?.toLowerCase() || 'default';
+};
+
+const getLocalDemoAttendance = () => {
+  return localDemoAttendances[getUserKey()] || null;
+};
+
+const setLocalDemoAttendance = (att) => {
+  const key = getUserKey();
+  localDemoAttendances[key] = att;
+  if (att) {
+    const list = getProvisionedTeam();
+    const idx = list.findIndex(m => m.email?.toLowerCase() === key);
+    if (idx >= 0) {
+      list[idx] = {
+        ...list[idx],
+        status: att.status,
+        checkInAt: att.checkInAt,
+        checkOutAt: att.checkOutAt,
+        breakCount: att.breaks ? att.breaks.length : 0,
+        totalBreakMinutes: att.breakMinutes || 0,
+        netWorkMinutes: att.netWorkMinutes || 0,
+        netWorkFormatted: att.netWorkMinutes
+          ? `${Math.floor(att.netWorkMinutes / 60)}h ${att.netWorkMinutes % 60}m`
+          : '0m',
+      };
+      localStorage.setItem(PROVISIONED_TEAM_KEY, JSON.stringify(list));
+    }
+  }
+};
 
 async function request(endpoint, options = {}) {
   const token = getAccessToken();
@@ -99,9 +192,29 @@ export const api = {
     try {
       const res = await request('/auth/demo-accounts');
       if (res && res.length > 0) return res;
-      return MOCK_EMPLOYEES;
+      const localTeam = getProvisionedTeam();
+      return [
+        { id: 'mgr-rahul', fullName: 'Rahul Khanna', email: 'rahul.khanna@techviista.net', role: 'MANAGER', active: true },
+        ...localTeam.map(m => ({
+          id: m.employeeId || 'emp-' + m.email,
+          fullName: m.fullName,
+          email: m.email,
+          role: m.role || 'EMPLOYEE',
+          active: true,
+        })),
+      ];
     } catch {
-      return MOCK_EMPLOYEES;
+      const localTeam = getProvisionedTeam();
+      return [
+        { id: 'mgr-rahul', fullName: 'Rahul Khanna', email: 'rahul.khanna@techviista.net', role: 'MANAGER', active: true },
+        ...localTeam.map(m => ({
+          id: m.employeeId || 'emp-' + m.email,
+          fullName: m.fullName,
+          email: m.email,
+          role: m.role || 'EMPLOYEE',
+          active: true,
+        })),
+      ];
     }
   },
   getHealth: async () => {
@@ -111,15 +224,16 @@ export const api = {
   // Attendance
   getTodayAttendance: async () => {
     const token = getAccessToken();
-    if (isDemoToken(token) && localDemoAttendance !== null) {
-      return localDemoAttendance;
+    const demoAtt = getLocalDemoAttendance();
+    if (isDemoToken(token) && demoAtt !== null) {
+      return demoAtt;
     }
     try {
       const res = await request('/attendance/today');
       return res;
     } catch (err) {
       if (isDemoToken(token) || err.isNetworkError || err.status === 401) {
-        return localDemoAttendance;
+        return getLocalDemoAttendance();
       }
       throw err;
     }
@@ -128,7 +242,7 @@ export const api = {
     const token = getAccessToken();
     try {
       const res = await request('/attendance/check-in', { method: 'POST' });
-      localDemoAttendance = res;
+      setLocalDemoAttendance(res);
       return res;
     } catch (err) {
       if (isDemoToken(token) || err.isNetworkError || err.status === 401 || err.status === 500) {
@@ -144,7 +258,7 @@ export const api = {
           netWorkMinutes: 0,
           breaks: [],
         };
-        localDemoAttendance = mock;
+        setLocalDemoAttendance(mock);
         return mock;
       }
       throw err;
@@ -154,12 +268,13 @@ export const api = {
     const token = getAccessToken();
     try {
       const res = await request('/attendance/breaks/start', { method: 'POST' });
-      localDemoAttendance = res;
+      setLocalDemoAttendance(res);
       return res;
     } catch (err) {
       if (isDemoToken(token) || err.isNetworkError || err.status === 401 || err.status === 500) {
         const now = new Date();
-        const currentBreaks = (localDemoAttendance && localDemoAttendance.breaks) ? [...localDemoAttendance.breaks] : [];
+        const currentAtt = getLocalDemoAttendance();
+        const currentBreaks = (currentAtt && currentAtt.breaks) ? [...currentAtt.breaks] : [];
         currentBreaks.push({
           id: 'b-' + Date.now(),
           startedAt: now.toISOString(),
@@ -167,7 +282,7 @@ export const api = {
           durationMinutes: 0,
         });
         const updated = {
-          ...(localDemoAttendance || {
+          ...(currentAtt || {
             id: 'demo-att-' + Date.now(),
             workDate: now.toISOString().split('T')[0],
             checkInAt: now.toISOString(),
@@ -178,7 +293,7 @@ export const api = {
           status: 'ON_BREAK',
           breaks: currentBreaks,
         };
-        localDemoAttendance = updated;
+        setLocalDemoAttendance(updated);
         return updated;
       }
       throw err;
@@ -188,12 +303,13 @@ export const api = {
     const token = getAccessToken();
     try {
       const res = await request('/attendance/breaks/end', { method: 'POST' });
-      localDemoAttendance = res;
+      setLocalDemoAttendance(res);
       return res;
     } catch (err) {
       if (isDemoToken(token) || err.isNetworkError || err.status === 401 || err.status === 500) {
         const now = new Date();
-        const breaks = ((localDemoAttendance && localDemoAttendance.breaks) || []).map((b) => {
+        const currentAtt = getLocalDemoAttendance();
+        const breaks = ((currentAtt && currentAtt.breaks) || []).map((b) => {
           if (!b.endedAt) {
             const start = new Date(b.startedAt);
             const diffMin = Math.max(1, Math.round((now - start) / 60000));
@@ -203,12 +319,12 @@ export const api = {
         });
         const totalBreakMins = breaks.reduce((acc, b) => acc + (b.durationMinutes || 0), 0);
         const updated = {
-          ...(localDemoAttendance || {}),
+          ...(currentAtt || {}),
           status: 'WORKING',
           breakMinutes: totalBreakMins,
           breaks,
         };
-        localDemoAttendance = updated;
+        setLocalDemoAttendance(updated);
         return updated;
       }
       throw err;
@@ -218,19 +334,20 @@ export const api = {
     const token = getAccessToken();
     try {
       const res = await request('/attendance/check-out', { method: 'POST' });
-      localDemoAttendance = res;
+      setLocalDemoAttendance(res);
       return res;
     } catch (err) {
       if (isDemoToken(token) || err.isNetworkError || err.status === 401 || err.status === 500) {
         const now = new Date();
-        const checkIn = localDemoAttendance?.checkInAt
-          ? new Date(localDemoAttendance.checkInAt)
+        const currentAtt = getLocalDemoAttendance();
+        const checkIn = currentAtt?.checkInAt
+          ? new Date(currentAtt.checkInAt)
           : new Date(Date.now() - 8.2 * 3600000);
         const grossMinutes = Math.max(0, Math.round((now - checkIn) / 60000));
-        const breakMins = localDemoAttendance?.breakMinutes || 45;
+        const breakMins = currentAtt?.breakMinutes || 45;
         const netWorkMinutes = Math.max(0, grossMinutes - breakMins);
         const updated = {
-          ...(localDemoAttendance || {
+          ...(currentAtt || {
             id: 'demo-att-' + Date.now(),
             workDate: now.toISOString().split('T')[0],
             checkInAt: checkIn.toISOString(),
@@ -242,7 +359,7 @@ export const api = {
           breakMinutes: breakMins,
           netWorkMinutes,
         };
-        localDemoAttendance = updated;
+        setLocalDemoAttendance(updated);
         return updated;
       }
       throw err;
@@ -263,10 +380,12 @@ export const api = {
     try {
       const q = dateStr ? `?date=${encodeURIComponent(dateStr)}` : '';
       const res = await request(`/admin/attendance/today${q}`);
-      if (res && res.roster) return res;
-      return MOCK_TEAM_TODAY;
+      if (res && Array.isArray(res.members)) return res;
+      const localTeam = getProvisionedTeam();
+      return buildTeamDashboard(localTeam);
     } catch {
-      return MOCK_TEAM_TODAY;
+      const localTeam = getProvisionedTeam();
+      return buildTeamDashboard(localTeam);
     }
   },
   getAdminAttendanceList: async ({ date, employeeId, status } = {}) => {
@@ -295,16 +414,44 @@ export const api = {
     try {
       const res = await request('/admin/employees');
       if (res && res.length > 0) return res;
-      return MOCK_EMPLOYEES;
+      return getProvisionedTeam();
     } catch {
-      return MOCK_EMPLOYEES;
+      return getProvisionedTeam();
     }
   },
   provisionEmployee: async (data) => {
-    return request('/admin/employees', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const memberObj = {
+      employeeId: 'emp-' + Date.now(),
+      fullName: data.fullName,
+      email: data.email.trim().toLowerCase(),
+      role: data.role || 'EMPLOYEE',
+      status: 'NOT_CHECKED_IN',
+      checkInAt: null,
+      checkOutAt: null,
+      breakCount: 0,
+      totalBreakMinutes: 0,
+      hasActiveBreak: false,
+      activeBreakMinutes: 0,
+      breakOverOneHour: false,
+      netWorkMinutes: 0,
+      netWorkFormatted: '—',
+      breaks: [],
+    };
+
+    try {
+      const res = await request('/admin/employees', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      saveProvisionedMember({
+        ...memberObj,
+        employeeId: res?.id || memberObj.employeeId,
+      });
+      return res || memberObj;
+    } catch (err) {
+      saveProvisionedMember(memberObj);
+      return memberObj;
+    }
   },
 
   // Analytics

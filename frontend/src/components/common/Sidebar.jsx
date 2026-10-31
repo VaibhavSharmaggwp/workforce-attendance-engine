@@ -10,7 +10,7 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
   const navItems = [
     { id: 'today', label: 'Today', icon: Clock },
     { id: 'history', label: 'My attendance', icon: Calendar },
-    { id: 'yearly', label: 'Yearly overview', icon: BarChart2, tag: 'Phase 2' },
+    { id: 'yearly', label: 'Yearly overview', icon: BarChart2 },
   ];
 
   if (isManager) {

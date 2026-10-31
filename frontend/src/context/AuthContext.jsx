@@ -7,6 +7,7 @@ import {
   getStoredUser,
   setStoredUser,
   isDemoToken,
+  getProvisionedTeam,
 } from '../services/api';
 import { MOCK_EMPLOYEES } from '../services/mockData';
 
@@ -73,8 +74,19 @@ export const AuthProvider = ({ children }) => {
         return response.user;
       }
     } catch (err) {
-      // Offline fallback: check mock accounts
-      const matched = MOCK_EMPLOYEES.find(e => e.email.toLowerCase() === email.trim().toLowerCase());
+      // Offline fallback: check mock accounts + provisioned team
+      const provisioned = getProvisionedTeam();
+      const allAccounts = [
+        ...MOCK_EMPLOYEES,
+        ...provisioned.map(m => ({
+          id: m.employeeId || 'emp-' + m.email,
+          fullName: m.fullName,
+          email: m.email,
+          role: m.role || 'EMPLOYEE',
+          active: true,
+        })),
+      ];
+      const matched = allAccounts.find(e => e.email.toLowerCase() === email.trim().toLowerCase());
       if (matched) {
         const dummyToken = 'demo-jwt-token-' + matched.id;
         setTokens(dummyToken, dummyToken);
@@ -83,7 +95,7 @@ export const AuthProvider = ({ children }) => {
         setStoredUser(matched);
         return matched;
       }
-      const msg = err.payload?.message || err.message || 'Login failed. Account not linked to an employee record.';
+      const msg = err.payload?.message || err.message || 'This Google/work account is not linked to an employee record. Ask your manager to add your account.';
       setAuthError(msg);
       throw err;
     } finally {

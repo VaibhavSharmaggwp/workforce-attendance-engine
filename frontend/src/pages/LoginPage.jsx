@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { MOCK_EMPLOYEES } from '../services/mockData';
-import { Eye, EyeOff, AlertCircle, ArrowRight, UserCheck, Shield } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, UserCheck, Shield, UserPlus } from 'lucide-react';
 
 export const LoginPage = () => {
   const { loginWithCredentials, loginAsDemo, authError, setAuthError } = useAuth();
@@ -12,6 +13,13 @@ export const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
+  const [testAccounts, setTestAccounts] = useState([]);
+
+  useEffect(() => {
+    api.getDemoAccounts().then(accs => {
+      if (accs && accs.length > 0) setTestAccounts(accs);
+    }).catch(() => {});
+  }, []);
 
   const handleGoogleSignIn = () => {
     setIsGoogleRedirecting(true);
@@ -312,77 +320,53 @@ export const LoginPage = () => {
                 <Shield size={14} color="var(--color-coral)" />
                 Quick Test Accounts (One-Click Sign-in)
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await loginAsDemo(MOCK_EMPLOYEES[0]);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1.5px solid #D6CEBE',
-                    backgroundColor: '#FFFEFC',
-                    color: 'var(--color-charcoal)',
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-coral)';
-                    e.currentTarget.style.backgroundColor = '#FFF8F5';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#D6CEBE';
-                    e.currentTarget.style.backgroundColor = '#FFFEFC';
-                  }}
-                >
-                  <UserCheck size={16} color="#1D8350" style={{ flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'var(--color-charcoal)' }}>Ananya Sharma</div>
-                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500 }}>Employee</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await loginAsDemo(MOCK_EMPLOYEES[1]);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1.5px solid #D6CEBE',
-                    backgroundColor: '#FFFEFC',
-                    color: 'var(--color-charcoal)',
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-amber)';
-                    e.currentTarget.style.backgroundColor = '#FFFDF5';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#D6CEBE';
-                    e.currentTarget.style.backgroundColor = '#FFFEFC';
-                  }}
-                >
-                  <Shield size={16} color="#EFA537" style={{ flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'var(--color-charcoal)' }}>Rahul Khanna</div>
-                    <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500 }}>Manager</div>
-                  </div>
-                </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                {(testAccounts.length > 0 ? testAccounts : MOCK_EMPLOYEES.slice(0, 2)).map((acc) => (
+                  <button
+                    key={acc.id || acc.email}
+                    type="button"
+                    onClick={async () => {
+                      await loginAsDemo(acc);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      border: '1.5px solid #D6CEBE',
+                      backgroundColor: '#FFFEFC',
+                      color: 'var(--color-charcoal)',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = acc.role === 'MANAGER' ? 'var(--color-amber)' : 'var(--color-coral)';
+                      e.currentTarget.style.backgroundColor = acc.role === 'MANAGER' ? '#FFFDF5' : '#FFF8F5';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#D6CEBE';
+                      e.currentTarget.style.backgroundColor = '#FFFEFC';
+                    }}
+                  >
+                    {acc.role === 'MANAGER' ? (
+                      <Shield size={16} color="#EFA537" style={{ flexShrink: 0 }} />
+                    ) : (
+                      <UserCheck size={16} color="#1D8350" style={{ flexShrink: 0 }} />
+                    )}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: 'var(--color-charcoal)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {acc.fullName}
+                      </div>
+                      <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500, textTransform: 'capitalize' }}>
+                        {acc.role ? acc.role.toLowerCase() : 'employee'}
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

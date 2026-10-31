@@ -19,6 +19,25 @@ vi.mock('../context/AuthContext', () => ({
 describe('Sales Spreadsheet Activity & Proof-of-Work Verification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.setItem(
+      'ams_provisioned_team',
+      JSON.stringify([
+        {
+          employeeId: 'emp-ananya',
+          fullName: 'Ananya Sharma',
+          email: 'ananya.sharma@techviista.net',
+          role: 'EMPLOYEE',
+          status: 'WORKING',
+          checkInAt: '2026-10-31T09:30:00+05:30',
+          checkOutAt: null,
+          breakCount: 1,
+          totalBreakMinutes: 45,
+          netWorkMinutes: 280,
+          netWorkFormatted: '4h 40m',
+          breaks: [],
+        },
+      ])
+    );
   });
 
   it('renders the Sales Spreadsheet Activity card with engagement percentage and active workbook', async () => {
@@ -88,6 +107,39 @@ describe('Sales Spreadsheet Activity & Proof-of-Work Verification', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Alerts OFF/i)).toBeDefined();
+    });
+  });
+
+  it('allows manager to provision a new employee and displays them as NOT_CHECKED_IN', async () => {
+    localStorage.removeItem('ams_provisioned_team');
+    render(
+      <ToastProvider>
+        <TeamAttendancePage />
+      </ToastProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/No employees in team roster yet/i)).toBeDefined();
+    });
+
+    const addBtn = screen.getByRole('button', { name: /Provision first employee/i });
+    fireEvent.click(addBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Provision New Employee/i)).toBeDefined();
+    });
+
+    const nameInput = screen.getByPlaceholderText(/Maya Patel/i);
+    const emailInput = screen.getByPlaceholderText(/maya.patel@techviista.net/i);
+    fireEvent.change(nameInput, { target: { value: 'Pooja Sharma' } });
+    fireEvent.change(emailInput, { target: { value: 'pooja.sharma@techviista.net' } });
+
+    const submitBtn = screen.getByRole('button', { name: /Add Employee/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Pooja Sharma')).toBeDefined();
+      expect(screen.getByText('pooja.sharma@techviista.net')).toBeDefined();
     });
   });
 });
