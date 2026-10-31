@@ -27,13 +27,13 @@ export const MyAttendancePage = () => {
       try {
         setLoading(true);
         const data = await api.getAttendanceHistory();
-        if (data && data.length > 0) {
+        if (Array.isArray(data)) {
           setRecords(data);
         } else {
-          setRecords(MOCK_HISTORY_RECORDS);
+          setRecords([]);
         }
       } catch (err) {
-        setRecords(MOCK_HISTORY_RECORDS);
+        setRecords([]);
       } finally {
         setLoading(false);
       }

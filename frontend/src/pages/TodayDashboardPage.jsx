@@ -28,12 +28,14 @@ import {
 export const TodayDashboardPage = ({ onNavigateToHistory }) => {
   const { user } = useAuth();
   const { addToast } = useToast();
+  const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN';
 
   const [attendance, setAttendance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [recentRecords, setRecentRecords] = useState([]);
 
   // Sales Spreadsheet Activity & Proof of Work state
   const [engagement, setEngagement] = useState(null);
@@ -56,6 +58,10 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
       setAttendance(data);
       const eng = await api.getTodayEngagement();
       setEngagement(eng);
+      const history = await api.getAttendanceHistory();
+      if (Array.isArray(history)) {
+        setRecentRecords(history.slice(0, 6));
+      }
     } catch (err) {
       // 404 means no record today, which is State A (Not checked in)
       if (err.status === 404 || err.message?.includes('No attendance record found')) {
@@ -829,28 +835,36 @@ function onEdit(e) {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_HISTORY_RECORDS.slice(0, 6).map((rec) => (
-                  <tr key={rec.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                    <td style={{ padding: '12px 6px', fontWeight: 600, color: 'var(--color-charcoal)' }}>
-                      {new Date(rec.workDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
-                    </td>
-                    <td style={{ padding: '12px 6px', color: 'var(--color-stone)' }}>
-                      {formatTimeOnly(rec.checkInAt)}
-                    </td>
-                    <td style={{ padding: '12px 6px', color: rec.checkOutAt ? 'var(--color-stone)' : '#BF3A4C', fontWeight: rec.checkOutAt ? 400 : 600 }}>
-                      {rec.checkOutAt ? formatTimeOnly(rec.checkOutAt) : 'Missing'}
-                    </td>
-                    <td style={{ padding: '12px 6px', color: 'var(--color-stone)' }}>
-                      {rec.breakMinutes}m
-                    </td>
-                    <td style={{ padding: '12px 6px', fontWeight: 700, color: rec.netWorkMinutes > 0 ? '#1D8350' : '#8E857C' }}>
-                      {rec.netWorkMinutes > 0 ? formatHoursMinutes(rec.netWorkMinutes) : '—'}
-                    </td>
-                    <td style={{ padding: '12px 6px' }}>
-                      <StatusBadge status={rec.status} size="sm" />
+                {recentRecords && recentRecords.length > 0 ? (
+                  recentRecords.map((rec) => (
+                    <tr key={rec.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{ padding: '12px 6px', fontWeight: 600, color: 'var(--color-charcoal)' }}>
+                        {new Date(rec.workDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </td>
+                      <td style={{ padding: '12px 6px', color: 'var(--color-stone)' }}>
+                        {formatTimeOnly(rec.checkInAt)}
+                      </td>
+                      <td style={{ padding: '12px 6px', color: rec.checkOutAt ? 'var(--color-stone)' : '#BF3A4C', fontWeight: rec.checkOutAt ? 400 : 600 }}>
+                        {rec.checkOutAt ? formatTimeOnly(rec.checkOutAt) : 'Missing'}
+                      </td>
+                      <td style={{ padding: '12px 6px', color: 'var(--color-stone)' }}>
+                        {rec.breakMinutes}m
+                      </td>
+                      <td style={{ padding: '12px 6px', fontWeight: 700, color: rec.netWorkMinutes > 0 ? '#1D8350' : '#8E857C' }}>
+                        {rec.netWorkMinutes > 0 ? formatHoursMinutes(rec.netWorkMinutes) : '—'}
+                      </td>
+                      <td style={{ padding: '12px 6px' }}>
+                        <StatusBadge status={rec.status} size="sm" />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--color-stone)' }}>
+                      No recent activity recorded yet.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -947,167 +961,169 @@ function onEdit(e) {
             )}
           </div>
 
-          {/* Sales Spreadsheet Activity & Proof of Work Card */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              border: '1px solid var(--color-border)',
-              padding: '22px 24px',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div
+          {/* Sales Spreadsheet Activity & Proof of Work Card (Employees Only) */}
+          {!isManager && (
+            <div
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-card)',
+                border: '1px solid var(--color-border)',
+                padding: '22px 24px',
+                boxShadow: 'var(--shadow-card)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      backgroundColor: '#EBF7F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#1D8350',
+                    }}
+                  >
+                    <FileSpreadsheet size={18} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                      Sales Spreadsheet Activity
+                    </h3>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)' }}>
+                      Live Proof of Work · Google Sheets / Excel
+                    </div>
+                  </div>
+                </div>
+                <span
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    backgroundColor: '#EBF7F0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#1D8350',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: 6,
+                    backgroundColor: (engagement?.verificationLevel === 'HIGH') ? '#EBF7F0' : (engagement?.verificationLevel === 'MODERATE') ? '#EFF6FF' : '#FEF6EB',
+                    color: (engagement?.verificationLevel === 'HIGH') ? '#1D8350' : (engagement?.verificationLevel === 'MODERATE') ? '#1D4ED8' : '#965B0A',
+                    border: `1px solid ${(engagement?.verificationLevel === 'HIGH') ? '#C4E8D1' : (engagement?.verificationLevel === 'MODERATE') ? '#BFDBFE' : '#F8D9A8'}`,
                   }}
                 >
-                  <FileSpreadsheet size={18} />
+                  {engagement?.verificationLevel === 'HIGH' ? 'High Engagement' : engagement?.verificationLevel === 'MODERATE' ? 'Moderate Work' : 'Low / Idle'}
+                </span>
+              </div>
+
+              {/* Engagement percentage bar */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 6 }}>
+                  <span style={{ color: 'var(--color-stone)', fontWeight: 500 }}>Active Excel Engagement</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-charcoal)' }} className="tabular-numbers">
+                    {engagement?.engagementPercentage ?? 85.7}%
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: 7, backgroundColor: '#EFECE6', borderRadius: 4, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${Math.min(100, engagement?.engagementPercentage ?? 85.7)}%`,
+                      height: '100%',
+                      backgroundColor: (engagement?.engagementPercentage ?? 85.7) >= 70 ? '#1D8350' : '#EFA537',
+                      borderRadius: 4,
+                      transition: 'width 0.4s ease',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Quick Metrics Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 10,
+                  backgroundColor: '#FAF7F2',
+                  border: '1px solid var(--color-border-subtle)',
+                  borderRadius: 8,
+                  padding: '12px 14px',
+                  marginBottom: 14,
+                }}
+                className="tabular-numbers"
+              >
+                <div>
+                  <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Active spreadsheet time</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                    {formatHoursMinutes(engagement?.activeSpreadsheetMinutes ?? 240)}
+                  </div>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
-                    Sales Spreadsheet Activity
-                  </h3>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)' }}>
-                    Live Proof of Work · Google Sheets / Excel
+                  <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Total cell edits verified</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D8350', marginTop: 2 }}>
+                    {engagement?.totalEditsCount ?? 68} edits
                   </div>
                 </div>
               </div>
-              <span
-                style={{
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  padding: '3px 8px',
-                  borderRadius: 6,
-                  backgroundColor: (engagement?.verificationLevel === 'HIGH') ? '#EBF7F0' : (engagement?.verificationLevel === 'MODERATE') ? '#EFF6FF' : '#FEF6EB',
-                  color: (engagement?.verificationLevel === 'HIGH') ? '#1D8350' : (engagement?.verificationLevel === 'MODERATE') ? '#1D4ED8' : '#965B0A',
-                  border: `1px solid ${(engagement?.verificationLevel === 'HIGH') ? '#C4E8D1' : (engagement?.verificationLevel === 'MODERATE') ? '#BFDBFE' : '#F8D9A8'}`,
-                }}
-              >
-                {engagement?.verificationLevel === 'HIGH' ? 'High Engagement' : engagement?.verificationLevel === 'MODERATE' ? 'Moderate Work' : 'Low / Idle'}
-              </span>
-            </div>
 
-            {/* Engagement percentage bar */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 6 }}>
-                <span style={{ color: 'var(--color-stone)', fontWeight: 500 }}>Active Excel Engagement</span>
-                <span style={{ fontWeight: 700, color: 'var(--color-charcoal)' }} className="tabular-numbers">
-                  {engagement?.engagementPercentage ?? 85.7}%
-                </span>
+              {/* Active Workbook name */}
+              <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginBottom: 16 }}>
+                Active workbook:{' '}
+                <strong style={{ color: 'var(--color-charcoal)' }}>
+                  {engagement?.activeWorkbook || 'Q4_Enterprise_Sales_Pipeline.xlsx'}
+                </strong>
               </div>
-              <div style={{ width: '100%', height: 7, backgroundColor: '#EFECE6', borderRadius: 4, overflow: 'hidden' }}>
-                <div
+
+              {/* Interactive buttons: Simulate pulse & Copy script */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={handleSimulatePulse}
+                  disabled={simulatingPulse}
                   style={{
-                    width: `${Math.min(100, engagement?.engagementPercentage ?? 85.7)}%`,
-                    height: '100%',
-                    backgroundColor: (engagement?.engagementPercentage ?? 85.7) >= 70 ? '#1D8350' : '#EFA537',
-                    borderRadius: 4,
-                    transition: 'width 0.4s ease',
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    backgroundColor: '#1D8350',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 'var(--radius-control)',
+                    padding: '9px 12px',
+                    fontSize: '0.80rem',
+                    fontWeight: 600,
+                    cursor: simulatingPulse ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 1px 3px rgba(29, 131, 80, 0.25)',
+                    transition: 'background 0.15s',
                   }}
-                />
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#15653E')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1D8350')}
+                >
+                  <Zap size={14} fill="#FFFFFF" />
+                  <span>{simulatingPulse ? 'Logging...' : 'Simulate edit pulse'}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowScriptModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-charcoal)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-control)',
+                    padding: '9px 12px',
+                    fontSize: '0.80rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0ECE4')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <ExternalLink size={14} />
+                  <span>Apps Script</span>
+                </button>
               </div>
             </div>
-
-            {/* Quick Metrics Grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 10,
-                backgroundColor: '#FAF7F2',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: 8,
-                padding: '12px 14px',
-                marginBottom: 14,
-              }}
-              className="tabular-numbers"
-            >
-              <div>
-                <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Active spreadsheet time</div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                  {formatHoursMinutes(engagement?.activeSpreadsheetMinutes ?? 240)}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Total cell edits verified</div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D8350', marginTop: 2 }}>
-                  {engagement?.totalEditsCount ?? 68} edits
-                </div>
-              </div>
-            </div>
-
-            {/* Active Workbook name */}
-            <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginBottom: 16 }}>
-              Active workbook:{' '}
-              <strong style={{ color: 'var(--color-charcoal)' }}>
-                {engagement?.activeWorkbook || 'Q4_Enterprise_Sales_Pipeline.xlsx'}
-              </strong>
-            </div>
-
-            {/* Interactive buttons: Simulate pulse & Copy script */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={handleSimulatePulse}
-                disabled={simulatingPulse}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  backgroundColor: '#1D8350',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: 'var(--radius-control)',
-                  padding: '9px 12px',
-                  fontSize: '0.80rem',
-                  fontWeight: 600,
-                  cursor: simulatingPulse ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 1px 3px rgba(29, 131, 80, 0.25)',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#15653E')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1D8350')}
-              >
-                <Zap size={14} fill="#FFFFFF" />
-                <span>{simulatingPulse ? 'Logging...' : 'Simulate edit pulse'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowScriptModal(true)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-charcoal)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-control)',
-                  padding: '9px 12px',
-                  fontSize: '0.80rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0ECE4')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <ExternalLink size={14} />
-                <span>Apps Script</span>
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Month so far KPI Card with 10-day bar chart (Page 7) */}
           <div

@@ -60,7 +60,8 @@ export const clearProvisionedTeam = () => {
 };
 
 export const buildTeamDashboard = (membersList = []) => {
-  const total = membersList.length;
+  const staff = membersList.filter(m => m.role !== 'MANAGER' && m.role !== 'ADMIN');
+  const total = staff.length;
   let working = 0;
   let onBreak = 0;
   let checkedOut = 0;
@@ -68,7 +69,7 @@ export const buildTeamDashboard = (membersList = []) => {
   let incomplete = 0;
   let overBreak = 0;
 
-  membersList.forEach((m) => {
+  staff.forEach((m) => {
     if (m.status === 'WORKING') working++;
     else if (m.status === 'ON_BREAK') onBreak++;
     else if (m.status === 'COMPLETED') checkedOut++;
@@ -87,7 +88,7 @@ export const buildTeamDashboard = (membersList = []) => {
     notCheckedInCount: notCheckedIn,
     incompleteCount: incomplete,
     overBreakCount: overBreak,
-    members: membersList,
+    members: staff,
   };
 };
 
@@ -189,33 +190,7 @@ export const api = {
     return request('/me');
   },
   getDemoAccounts: async () => {
-    try {
-      const res = await request('/auth/demo-accounts');
-      if (res && res.length > 0) return res;
-      const localTeam = getProvisionedTeam();
-      return [
-        { id: 'mgr-mayank', fullName: 'Mayank Verma', email: 'techviista53@gmail.com', role: 'MANAGER', active: true },
-        ...localTeam.map(m => ({
-          id: m.employeeId || 'emp-' + m.email,
-          fullName: m.fullName,
-          email: m.email,
-          role: m.role || 'EMPLOYEE',
-          active: true,
-        })),
-      ];
-    } catch {
-      const localTeam = getProvisionedTeam();
-      return [
-        { id: 'mgr-mayank', fullName: 'Mayank Verma', email: 'techviista53@gmail.com', role: 'MANAGER', active: true },
-        ...localTeam.map(m => ({
-          id: m.employeeId || 'emp-' + m.email,
-          fullName: m.fullName,
-          email: m.email,
-          role: m.role || 'EMPLOYEE',
-          active: true,
-        })),
-      ];
-    }
+    return [];
   },
   getHealth: async () => {
     return request('/health');
@@ -368,10 +343,10 @@ export const api = {
   getAttendanceHistory: async () => {
     try {
       const res = await request('/attendance/history');
-      if (res && res.length > 0) return res;
-      return MOCK_HISTORY_RECORDS;
+      if (Array.isArray(res)) return res;
+      return [];
     } catch {
-      return MOCK_HISTORY_RECORDS;
+      return [];
     }
   },
 
@@ -396,18 +371,17 @@ export const api = {
       if (status) params.append('status', status);
       const q = params.toString() ? `?${params.toString()}` : '';
       const res = await request(`/admin/attendance${q}`);
-      if (res && res.length > 0) return res;
-      return MOCK_HISTORY_RECORDS;
+      if (Array.isArray(res)) return res;
+      return [];
     } catch {
-      return MOCK_HISTORY_RECORDS;
+      return [];
     }
   },
   getAdminAttendanceDetail: async (id) => {
     try {
       return await request(`/admin/attendance/${id}`);
     } catch {
-      const rec = MOCK_HISTORY_RECORDS.find(r => r.id === id) || MOCK_HISTORY_RECORDS[0];
-      return rec;
+      return null;
     }
   },
   getEmployees: async () => {
@@ -456,13 +430,22 @@ export const api = {
 
   // Analytics
   getYearlyOverview: async (year) => {
+    const emptyOverview = {
+      totalDaysRecorded: 0,
+      completeDays: 0,
+      incompleteDays: 0,
+      totalNetWorkHours: '0h',
+      averageNetPerDay: '—',
+      monthlySummaries: [],
+      dailyActivities: [],
+    };
     try {
       const q = year ? `?year=${year}` : '';
       const res = await request(`/analytics/yearly-overview${q}`);
-      if (res && res.months) return res;
-      return MOCK_YEARLY_OVERVIEW;
+      if (res && Array.isArray(res.monthlySummaries)) return res;
+      return emptyOverview;
     } catch {
-      return MOCK_YEARLY_OVERVIEW;
+      return emptyOverview;
     }
   },
 

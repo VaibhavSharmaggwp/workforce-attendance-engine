@@ -151,13 +151,15 @@ export const TeamAttendancePage = () => {
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Filter members by search and status chip
-  const filteredMembers = (dashboard.members || []).filter((m) => {
-    const matchesSearch =
-      m.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.email.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter members by search and status chip (excluding manager/admin accounts)
+  const filteredMembers = (dashboard.members || [])
+    .filter((m) => m.role !== 'MANAGER' && m.role !== 'ADMIN')
+    .filter((m) => {
+      const matchesSearch =
+        m.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
     if (statusFilter === 'ALL') return true;
     if (statusFilter === 'WORKING') return m.status === 'WORKING';
@@ -524,7 +526,7 @@ export const TeamAttendancePage = () => {
                     <p style={{ fontSize: '0.84rem', color: '#8E857C', maxWidth: 420, margin: '0 auto 18px', lineHeight: 1.45 }}>
                       {searchQuery || statusFilter !== 'ALL'
                         ? 'No team members match your current filter.'
-                        : 'Your team roster is clean. Click "Provision employee" above to register your first team member with their corporate email.'}
+                        : 'Your team roster is clean. Click "Provision employee" above to register your first team member with their Gmail address.'}
                     </p>
                     {statusFilter === 'ALL' && !searchQuery && (
                       <button

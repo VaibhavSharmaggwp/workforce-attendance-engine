@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
-import { MOCK_EMPLOYEES } from '../services/mockData';
-import { Eye, EyeOff, AlertCircle, ArrowRight, UserCheck, Shield, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { loginWithCredentials, loginAsDemo, authError, setAuthError } = useAuth();
+  const { loginWithCredentials, authError, setAuthError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -13,15 +11,6 @@ export const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
-  const [testAccounts, setTestAccounts] = useState([]);
-
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      api.getDemoAccounts().then(accs => {
-        if (accs && accs.length > 0) setTestAccounts(accs);
-      }).catch(() => {});
-    }
-  }, []);
 
   const handleGoogleSignIn = () => {
     setIsGoogleRedirecting(true);
@@ -315,64 +304,6 @@ export const LoginPage = () => {
                 </form>
               )}
             </div>
-
-            {/* Instant Demo Switcher - Dev Only (Stripped in Production Build) */}
-            {import.meta.env.DEV && (
-              <div style={{ marginTop: 24, padding: '14px 16px', backgroundColor: '#F7F3EE', borderRadius: 10, border: '1px solid var(--color-border)' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--color-stone)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Shield size={14} color="var(--color-coral)" />
-                  Quick Test Accounts (Development Mode Only)
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                  {(testAccounts.length > 0 ? testAccounts : MOCK_EMPLOYEES.slice(0, 2)).map((acc) => (
-                    <button
-                      key={acc.id || acc.email}
-                      type="button"
-                      onClick={async () => {
-                        await loginAsDemo(acc);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 12px',
-                        borderRadius: 8,
-                        border: '1.5px solid #D6CEBE',
-                        backgroundColor: '#FFFEFC',
-                        color: 'var(--color-charcoal)',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = acc.role === 'MANAGER' ? 'var(--color-amber)' : 'var(--color-coral)';
-                        e.currentTarget.style.backgroundColor = acc.role === 'MANAGER' ? '#FFFDF5' : '#FFF8F5';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#D6CEBE';
-                        e.currentTarget.style.backgroundColor = '#FFFEFC';
-                      }}
-                    >
-                      {acc.role === 'MANAGER' ? (
-                        <Shield size={16} color="#EFA537" style={{ flexShrink: 0 }} />
-                      ) : (
-                        <UserCheck size={16} color="#1D8350" style={{ flexShrink: 0 }} />
-                      )}
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, color: 'var(--color-charcoal)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {acc.fullName}
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: '#8E857C', fontWeight: 500, textTransform: 'capitalize' }}>
-                          {acc.role ? acc.role.toLowerCase() : 'employee'}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#9B938B' }}>

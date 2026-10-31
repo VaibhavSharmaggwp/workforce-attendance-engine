@@ -3,8 +3,18 @@ import { api } from '../services/api';
 import { MOCK_YEARLY_OVERVIEW } from '../services/mockData';
 import { BarChart2, Calendar, ChevronDown, CheckCircle2, AlertTriangle, Clock, Flame, Award, X } from 'lucide-react';
 
+const EMPTY_YEARLY = {
+  totalDaysRecorded: 0,
+  completeDays: 0,
+  incompleteDays: 0,
+  totalNetWorkHours: '0h',
+  averageNetPerDay: '—',
+  monthlySummaries: [],
+  dailyActivities: [],
+};
+
 export const YearlyOverviewPage = () => {
-  const [data, setData] = useState(MOCK_YEARLY_OVERVIEW);
+  const [data, setData] = useState(EMPTY_YEARLY);
   const [loading, setLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2026);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
@@ -31,37 +41,17 @@ export const YearlyOverviewPage = () => {
       try {
         setLoading(true);
         if (selectedYear < 2026) {
-          setData({
-            totalDaysRecorded: 0,
-            completeDays: 0,
-            incompleteDays: 0,
-            totalNetWorkHours: '0h',
-            averageNetPerDay: '—',
-            monthlySummaries: [],
-            dailyActivities: [],
-          });
+          setData(EMPTY_YEARLY);
           return;
         }
         const res = await api.getYearlyOverview(selectedYear);
         if (res && res.monthlySummaries && res.monthlySummaries.length > 0) {
           setData(res);
         } else {
-          setData(MOCK_YEARLY_OVERVIEW);
+          setData(EMPTY_YEARLY);
         }
       } catch (err) {
-        if (selectedYear < 2026) {
-          setData({
-            totalDaysRecorded: 0,
-            completeDays: 0,
-            incompleteDays: 0,
-            totalNetWorkHours: '0h',
-            averageNetPerDay: '—',
-            monthlySummaries: [],
-            dailyActivities: [],
-          });
-        } else {
-          setData(MOCK_YEARLY_OVERVIEW);
-        }
+        setData(EMPTY_YEARLY);
       } finally {
         setLoading(false);
       }
@@ -84,7 +74,6 @@ export const YearlyOverviewPage = () => {
 
     const map = {};
 
-    // 1. If backend returned real dailyActivities:
     if (data.dailyActivities && data.dailyActivities.length > 0) {
       data.dailyActivities.forEach((act) => {
         map[act.date] = {
@@ -93,48 +82,8 @@ export const YearlyOverviewPage = () => {
           status: act.status,
         };
       });
-      return map;
     }
 
-    // 2. High-fidelity synthetic distribution for October 2026 and historical months
-    // Matching PRD §10: 196 total recorded days, 10 incomplete days, avg 6h 10m
-    const jan1 = new Date(selectedYear, 0, 1);
-    const today = new Date();
-
-    for (let m = 0; m < 12; m++) {
-      const daysInMonth = new Date(selectedYear, m + 1, 0).getDate();
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dateObj = new Date(selectedYear, m, d);
-        if (selectedYear === 2026 && dateObj > today) break;
-
-        const dateStr = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dayOfWeek = (dateObj.getDay() + 6) % 7; // 0=Mon, 6=Sun
-        const isWeekend = dayOfWeek >= 5;
-
-        if (isWeekend) {
-          map[dateStr] = { isWeekend: true, netWorkMinutes: 0, breakMinutes: 0, status: 'OFF' };
-        } else {
-          // Pseudorandom consistent seed
-          const seed = (m * 31 + d * 7 + selectedYear) % 23;
-          if (seed === 5 || (m === 5 && d === 12) || (m === 9 && d === 14)) {
-            // Incomplete (missing check-out)
-            map[dateStr] = { netWorkMinutes: 245, breakMinutes: 45, status: 'INCOMPLETE' };
-          } else if (seed === 11 || (m === 7 && d === 18)) {
-            // Break over 1h
-            map[dateStr] = { netWorkMinutes: 375, breakMinutes: 75, status: 'BREAK_OVER_1H' };
-          } else if (seed % 4 === 0) {
-            // High net (> 6h 10m: e.g. 400m = 6h 40m)
-            map[dateStr] = { netWorkMinutes: 395 + (seed * 3), breakMinutes: 45, status: 'COMPLETED' };
-          } else if (seed % 3 === 0) {
-            // Target net (5h 45m - 6h 10m: e.g. 360m = 6h)
-            map[dateStr] = { netWorkMinutes: 355 + (seed * 2), breakMinutes: 40, status: 'COMPLETED' };
-          } else {
-            // Light net (< 5h 45m: e.g. 320m = 5h 20m)
-            map[dateStr] = { netWorkMinutes: 310 + (seed * 2), breakMinutes: 40, status: 'COMPLETED' };
-          }
-        }
-      }
-    }
     return map;
   }, [data, selectedYear]);
 
@@ -264,9 +213,9 @@ export const YearlyOverviewPage = () => {
       weeks: weeksList,
       monthPositions: positions,
       streakStats: {
-        totalDays: totalRecordedDays || data.totalDaysRecorded || 196,
-        currentStreak: Math.min(currentStreak, 14) || 14,
-        maxStreak: Math.max(maxStreak, 22) || 22,
+        totalDays: totalRecordedDays || data.totalDaysRecorded || 0,
+        currentStreak: currentStreak || 0,
+        maxStreak: maxStreak || 0,
       },
     };
   }, [selectedYear, activityMap, data]);
@@ -278,7 +227,7 @@ export const YearlyOverviewPage = () => {
     const list = data.monthlySummaries || [];
     const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    return monthOrder.map((mName, idx) => {
+    return monthOrder.map((mName) => {
       const match = list.find(s => s.monthName && s.monthName.toLowerCase().startsWith(mName.toLowerCase()));
       let hours = 0;
       let recordedDays = 0;
@@ -286,15 +235,13 @@ export const YearlyOverviewPage = () => {
       let avgDay = '—';
 
       if (match) {
-        const parsed = parseInt(match.netWorkHours.replace(/[^\d]/g, ''), 10);
+        const parsed = parseInt(String(match.netWorkHours).replace(/[^\d]/g, ''), 10);
         hours = isNaN(parsed) ? 0 : parsed;
         recordedDays = match.recordedDays;
         incompleteDays = match.incompleteDays;
         avgDay = match.averagePerDay;
       } else {
-        // Fallback historical values from PRD §10 Page 11
-        const defaultHours = [124, 105, 111, 129, 117, 105, 135, 117, 123, 82, 0, 0];
-        hours = defaultHours[idx] || 0;
+        hours = 0;
       }
 
       const inProgress = selectedYear === 2026 && mName === 'Oct';
@@ -750,25 +697,33 @@ export const YearlyOverviewPage = () => {
               </tr>
             </thead>
             <tbody>
-              {(data.monthlySummaries || []).map((m, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                  <td style={{ padding: '10px 6px', fontWeight: 600, color: 'var(--color-charcoal)' }}>
-                    {m.monthName}
-                  </td>
-                  <td style={{ padding: '10px 6px', color: 'var(--color-stone)' }}>
-                    {m.recordedDays}
-                  </td>
-                  <td style={{ padding: '10px 6px', color: m.incompleteDays > 0 ? '#BF3A4C' : 'var(--color-stone)', fontWeight: m.incompleteDays > 0 ? 600 : 400 }}>
-                    {m.incompleteDays}
-                  </td>
-                  <td style={{ padding: '10px 6px', fontWeight: 700, color: 'var(--color-charcoal)' }}>
-                    {m.netWorkHours}
-                  </td>
-                  <td style={{ padding: '10px 6px', color: '#1D8350', fontWeight: 600 }}>
-                    {m.averagePerDay}
+              {(data.monthlySummaries && data.monthlySummaries.length > 0) ? (
+                data.monthlySummaries.map((m, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <td style={{ padding: '10px 6px', fontWeight: 600, color: 'var(--color-charcoal)' }}>
+                      {m.monthName}
+                    </td>
+                    <td style={{ padding: '10px 6px', color: 'var(--color-stone)' }}>
+                      {m.recordedDays}
+                    </td>
+                    <td style={{ padding: '10px 6px', color: m.incompleteDays > 0 ? '#BF3A4C' : 'var(--color-stone)', fontWeight: m.incompleteDays > 0 ? 600 : 400 }}>
+                      {m.incompleteDays}
+                    </td>
+                    <td style={{ padding: '10px 6px', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                      {m.netWorkHours}
+                    </td>
+                    <td style={{ padding: '10px 6px', color: '#1D8350', fontWeight: 600 }}>
+                      {m.averagePerDay}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{ padding: '32px 12px', textAlign: 'center', color: 'var(--color-stone)' }}>
+                    No recorded attendance for {selectedYear} yet.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
