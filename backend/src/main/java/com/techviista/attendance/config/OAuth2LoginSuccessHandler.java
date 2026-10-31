@@ -1,12 +1,12 @@
 package com.techviista.attendance.config;
 
-
 import com.techviista.attendance.employee.Employee;
 import com.techviista.attendance.repository.EmployeeRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -21,6 +21,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final JwtService jwtService;
     private final EmployeeRepository employeeRepository;
 
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -32,7 +35,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         if (employeeOpt.isEmpty()) {
             // UI Rule: Redirect to "Account Not Linked" frontend page
-            getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/login?error=account_not_linked");
+            getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/login?error=account_not_linked");
             return;
         }
 
@@ -40,8 +43,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String refreshToken = jwtService.generateRefreshToken(email);
 
         // Redirect to the frontend application, passing the tokens safely
-        String targetUrl = "http://localhost:3000/oauth2/redirect?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
+        String targetUrl = frontendUrl + "/login?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
-
 }
