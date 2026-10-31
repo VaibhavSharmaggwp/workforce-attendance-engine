@@ -15,11 +15,11 @@ describe('YearlyOverviewPage - LeetCode Style Activity Histogram & Calendar Heat
     vi.clearAllMocks();
   });
 
-  it('renders page header, Phase 2 badge, and KPI summary cards', async () => {
+  it('renders page header, Annual Analytics badge, and KPI summary cards', async () => {
     render(<YearlyOverviewPage />);
 
     expect(screen.getByText('Yearly overview')).toBeDefined();
-    expect(screen.getByText('Phase 2 · PRD §10 analytics')).toBeDefined();
+    expect(screen.getByText('Annual Analytics')).toBeDefined();
     expect(screen.getByText('Days recorded')).toBeDefined();
     expect(screen.getByText('Complete days')).toBeDefined();
     expect(screen.getAllByText(/Incomplete/i).length).toBeGreaterThan(0);
@@ -71,7 +71,16 @@ describe('YearlyOverviewPage - LeetCode Style Activity Histogram & Calendar Heat
     fireEvent.click(opt2025);
 
     await waitFor(() => {
-      expect(screen.getAllByText(/2025/i).length).toBeGreaterThan(0);
+      expect(screen.getByText('No data available for 2025')).toBeDefined();
+    });
+
+    // Test clicking Switch back to 2026 Overview
+    const switchBackBtn = screen.getByRole('button', { name: /Switch to 2026 Overview/i });
+    expect(switchBackBtn).toBeDefined();
+    fireEvent.click(switchBackBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Net work hours by month \(Histogram\)/i)).toBeDefined();
     });
   });
 });

@@ -170,3 +170,4 @@ class InactivityScannerServiceTest {
         verify(kafkaTemplate, times(1)).send(eq("attendance-alerts"), any());
     }
 }
+

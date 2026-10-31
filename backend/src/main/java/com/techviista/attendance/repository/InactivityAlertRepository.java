@@ -13,3 +13,4 @@ public interface InactivityAlertRepository extends JpaRepository<InactivityAlert
     boolean existsByEmployeeIdAndWorkDate(UUID employeeId, LocalDate workDate);
     List<InactivityAlert> findByWorkDate(LocalDate workDate);
 }
+

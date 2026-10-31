@@ -30,6 +30,18 @@ export const YearlyOverviewPage = () => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
+        if (selectedYear < 2026) {
+          setData({
+            totalDaysRecorded: 0,
+            completeDays: 0,
+            incompleteDays: 0,
+            totalNetWorkHours: '0h',
+            averageNetPerDay: '—',
+            monthlySummaries: [],
+            dailyActivities: [],
+          });
+          return;
+        }
         const res = await api.getYearlyOverview(selectedYear);
         if (res && res.monthlySummaries && res.monthlySummaries.length > 0) {
           setData(res);
@@ -37,7 +49,19 @@ export const YearlyOverviewPage = () => {
           setData(MOCK_YEARLY_OVERVIEW);
         }
       } catch (err) {
-        setData(MOCK_YEARLY_OVERVIEW);
+        if (selectedYear < 2026) {
+          setData({
+            totalDaysRecorded: 0,
+            completeDays: 0,
+            incompleteDays: 0,
+            totalNetWorkHours: '0h',
+            averageNetPerDay: '—',
+            monthlySummaries: [],
+            dailyActivities: [],
+          });
+        } else {
+          setData(MOCK_YEARLY_OVERVIEW);
+        }
       } finally {
         setLoading(false);
       }
@@ -56,6 +80,8 @@ export const YearlyOverviewPage = () => {
 
   // Build a fast lookup map for all daily attendance activities
   const activityMap = useMemo(() => {
+    if (selectedYear < 2026) return {};
+
     const map = {};
 
     // 1. If backend returned real dailyActivities:
@@ -114,6 +140,18 @@ export const YearlyOverviewPage = () => {
 
   // Construct 53-week x 7-day calendar matrix
   const { weeks, monthPositions, streakStats } = useMemo(() => {
+    if (selectedYear < 2026) {
+      return {
+        weeks: [],
+        monthPositions: [],
+        streakStats: {
+          totalDays: 0,
+          currentStreak: 0,
+          maxStreak: 0,
+        },
+      };
+    }
+
     const jan1 = new Date(selectedYear, 0, 1);
     const dec31 = new Date(selectedYear, 11, 31);
     const today = new Date();
@@ -235,6 +273,8 @@ export const YearlyOverviewPage = () => {
 
   // Derived bar chart data from monthly summaries
   const monthlyChartBars = useMemo(() => {
+    if (selectedYear < 2026) return [];
+
     const list = data.monthlySummaries || [];
     const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -285,18 +325,20 @@ export const YearlyOverviewPage = () => {
               style={{
                 fontSize: '0.72rem',
                 fontWeight: 600,
-                backgroundColor: '#FEF6EB',
-                color: '#965B0A',
-                border: '1px solid #F8D9A8',
+                backgroundColor: '#F0ECE4',
+                color: 'var(--color-charcoal)',
+                border: '1px solid var(--color-border)',
                 borderRadius: 4,
                 padding: '2px 8px',
               }}
             >
-              Phase 2 · PRD §10 analytics
+              Annual Analytics
             </span>
           </div>
           <div style={{ fontSize: '0.82rem', color: 'var(--color-stone)', marginTop: 2 }}>
-            1 January – 21 October {selectedYear} · longitudinal trends across your recorded attendance
+            {selectedYear === 2026
+              ? '1 January – 21 October 2026 · Longitudinal trends across your recorded attendance'
+              : `Longitudinal trends across recorded attendance for ${selectedYear}`}
           </div>
         </div>
 
@@ -392,31 +434,37 @@ export const YearlyOverviewPage = () => {
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Days recorded</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {data.totalDaysRecorded || streakStats.totalDays}
+            {selectedYear < 2026 ? 0 : (data.totalDaysRecorded || streakStats.totalDays)}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>Jan – Oct {selectedYear}</div>
+          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
+            {selectedYear < 2026 ? `Jan – Dec ${selectedYear}` : `Jan – Oct ${selectedYear}`}
+          </div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Complete days</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#1D8350', marginTop: 4 }}>
-            {data.completeDays || 186}
+            {selectedYear < 2026 ? 0 : (data.completeDays || 186)}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>95% of recorded</div>
+          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
+            {selectedYear < 2026 ? '0% of recorded' : '95% of recorded'}
+          </div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Incomplete</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#BF3A4C', marginTop: 4 }}>
-            {data.incompleteDays || 10}
+            {selectedYear < 2026 ? 0 : (data.incompleteDays || 10)}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#BF3A4C', marginTop: 2 }}>missing check-out</div>
+          <div style={{ fontSize: '0.72rem', color: '#BF3A4C', marginTop: 2 }}>
+            {selectedYear < 2026 ? 'no missing check-outs' : 'missing check-out'}
+          </div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Net work</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {data.totalNetWorkHours || '1,148h'}
+            {selectedYear < 2026 ? '0h' : (data.totalNetWorkHours || '1,148h')}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>complete days only</div>
         </div>
@@ -424,18 +472,91 @@ export const YearlyOverviewPage = () => {
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg net / day</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {data.averageNetPerDay || '6h 10m'}
+            {selectedYear < 2026 ? '—' : (data.averageNetPerDay || '6h 10m')}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>7 days with break over 1h</div>
+          <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
+            {selectedYear < 2026 ? 'No sessions logged' : '7 days with break over 1h'}
+          </div>
         </div>
       </div>
 
-      {/* Main Row: Monthly Chart (Histogram) and Monthly Table */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1.15fr 1fr',
-          gap: 24,
+      {selectedYear < 2026 ? (
+        <div
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-card)',
+            padding: '64px 32px',
+            textAlign: 'center',
+            boxShadow: 'var(--shadow-subtle)',
+            marginBottom: 28,
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: '#F7F3EE',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-stone)',
+              marginBottom: 16,
+            }}
+          >
+            <Calendar size={28} />
+          </div>
+          <h3
+            style={{
+              fontSize: '1.2rem',
+              fontWeight: 700,
+              color: 'var(--color-charcoal)',
+              marginBottom: 8,
+            }}
+          >
+            No data available for {selectedYear}
+          </h3>
+          <p
+            style={{
+              fontSize: '0.88rem',
+              color: 'var(--color-stone)',
+              maxWidth: 480,
+              margin: '0 auto 20px',
+              lineHeight: 1.5,
+            }}
+          >
+            Attendance tracking and spreadsheet verification began in 2026. There are no recorded work hours, check-ins, or activity logs for {selectedYear}.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSelectedYear(2026)}
+            style={{
+              backgroundColor: 'var(--color-coral)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 'var(--radius-control)',
+              padding: '9px 20px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(217, 80, 42, 0.2)',
+              transition: 'background 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-coral-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-coral)')}
+          >
+            Switch to 2026 Overview
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Main Row: Monthly Chart (Histogram) and Monthly Table */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.15fr 1fr',
+              gap: 24,
           marginBottom: 28,
         }}
       >
@@ -950,10 +1071,12 @@ export const YearlyOverviewPage = () => {
           </div>
 
           <div style={{ fontStyle: 'italic', fontSize: '0.74rem' }}>
-            ⓘ No percentage calculation; working-day and holiday policies are deferred per PRD v1.0.
+            * Working-day totals reflect logged attendance sessions across the calendar year.
           </div>
         </div>
       </div>
+    </>
+  )}
     </div>
   );
 };

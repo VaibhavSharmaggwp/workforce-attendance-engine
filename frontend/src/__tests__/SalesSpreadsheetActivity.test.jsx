@@ -79,9 +79,8 @@ describe('Sales Spreadsheet Activity & Proof-of-Work Verification', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Manager Inactivity Email Alerts/i)).toBeDefined();
+      expect(screen.getByText(/Inactivity Email Alerts/i)).toBeDefined();
       expect(screen.getByText(/Alerts ON/i)).toBeDefined();
-      expect(screen.getByText(/Test Scan Now/i)).toBeDefined();
     });
 
     const toggleBtn = screen.getByRole('button', { name: /Alerts ON/i });

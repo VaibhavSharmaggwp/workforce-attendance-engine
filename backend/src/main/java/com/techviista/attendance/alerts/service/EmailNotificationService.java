@@ -44,3 +44,4 @@ public class EmailNotificationService {
         log.warn("DISPATCHING INACTIVITY EMAIL TO MANAGER:\n{}", emailBody);
     }
 }
+

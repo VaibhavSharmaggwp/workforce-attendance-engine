@@ -9,3 +9,4 @@ CREATE TABLE inactivity_alerts (
 );
 
 CREATE INDEX idx_inactivity_alerts_date ON inactivity_alerts(work_date);
+

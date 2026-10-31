@@ -13,3 +13,4 @@ public record InactivityAlertEvent(
         String lastActiveTime,
         String timestamp
 ) {}
+
