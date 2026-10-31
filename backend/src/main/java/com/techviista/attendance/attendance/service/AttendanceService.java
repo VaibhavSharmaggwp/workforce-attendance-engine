@@ -35,6 +35,10 @@ public class AttendanceService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
+        if (!employee.isActive()) {
+            throw new IllegalStateException("Your employee account is inactive. Please contact your manager.");
+        }
+
         LocalDate today = LocalDate.now(); // We will make this timezone-aware later
 
         // PRD Rule: Reject duplicate check-ins

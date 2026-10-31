@@ -710,3 +710,4 @@ export const TeamAttendancePage = () => {
     </div>
   );
 };
+

@@ -1022,3 +1022,4 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
     </div>
   );
 };
+

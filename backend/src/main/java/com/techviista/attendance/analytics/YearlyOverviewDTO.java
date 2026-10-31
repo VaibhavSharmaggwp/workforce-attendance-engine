@@ -1,5 +1,6 @@
 package com.techviista.attendance.analytics;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public record YearlyOverviewDTO(
@@ -8,7 +9,8 @@ public record YearlyOverviewDTO(
         int incompleteDays,
         String totalNetWorkHours,
         String averageNetPerDay,
-        List<MonthlySummaryDTO> monthlySummaries
+        List<MonthlySummaryDTO> monthlySummaries,
+        List<DailyActivityDTO> dailyActivities
 ) {
     public record MonthlySummaryDTO(
             String monthName,
@@ -16,5 +18,12 @@ public record YearlyOverviewDTO(
             int incompleteDays,
             String netWorkHours,
             String averagePerDay
+    ) {}
+
+    public record DailyActivityDTO(
+            LocalDate date,
+            int netWorkMinutes,
+            int breakMinutes,
+            String status
     ) {}
 }

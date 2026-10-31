@@ -460,3 +460,4 @@ export const MOCK_YEARLY_OVERVIEW = {
     { monthName: 'Jan 2026', recordedDays: 21, incompleteDays: 2, netWorkHours: '124h', averagePerDay: '6h 02m' },
   ]
 };
+

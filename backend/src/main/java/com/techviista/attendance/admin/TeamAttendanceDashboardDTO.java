@@ -50,3 +50,4 @@ public class TeamAttendanceDashboardDTO {
         private List<AttendanceResponse.BreakDetailDTO> breaks;
     }
 }
+

@@ -1,3 +1,4 @@
+
 # Attendance Management System — Web Frontend
 
 The client single-page application (SPA) for the **Workforce Attendance Engine**, developed strictly according to the **Product Requirements Document (PRD v1.0)** and the **UI/UX Design Proposal** by **Eduqynt Techviista Pvt. Ltd.**

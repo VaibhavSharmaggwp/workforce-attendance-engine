@@ -143,3 +143,4 @@ export const StatusBadge = ({ status, text, size = 'md' }) => {
     </span>
   );
 };
+

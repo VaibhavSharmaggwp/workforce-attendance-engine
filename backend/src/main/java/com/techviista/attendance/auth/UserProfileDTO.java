@@ -19,3 +19,4 @@ public class UserProfileDTO {
     private EmployeeRole role;
     private boolean active;
 }
+

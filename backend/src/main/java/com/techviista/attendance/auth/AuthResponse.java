@@ -14,3 +14,4 @@ public class AuthResponse {
     private String refreshToken;
     private UserProfileDTO user;
 }
+
