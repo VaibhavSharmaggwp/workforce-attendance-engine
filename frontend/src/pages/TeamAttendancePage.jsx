@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   Calendar,
   Filter,
+  FileSpreadsheet,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 export const TeamAttendancePage = () => {
@@ -21,11 +24,14 @@ export const TeamAttendancePage = () => {
   const { addToast } = useToast();
 
   const [dashboard, setDashboard] = useState(MOCK_TEAM_TODAY);
+  const [teamEngagement, setTeamEngagement] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedMember, setSelectedMember] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showScriptModal, setShowScriptModal] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
 
   // Form states for provisioning employee
   const [newFullName, setNewFullName] = useState('');
@@ -42,6 +48,8 @@ export const TeamAttendancePage = () => {
       } else {
         setDashboard(MOCK_TEAM_TODAY);
       }
+      const eng = await api.getTeamEngagement();
+      if (eng) setTeamEngagement(eng);
     } catch (err) {
       setDashboard(MOCK_TEAM_TODAY);
     } finally {
@@ -184,6 +192,30 @@ export const TeamAttendancePage = () => {
               }}
             />
           </div>
+
+          {/* Sales Tracker Script Button */}
+          <button
+            onClick={() => setShowScriptModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: '#EBF7F0',
+              color: '#1D8350',
+              border: '1px solid #C4E8D1',
+              borderRadius: 'var(--radius-control)',
+              padding: '8px 14px',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#DCF2E4')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#EBF7F0')}
+          >
+            <FileSpreadsheet size={15} />
+            <span>Sales Sheets Hook</span>
+          </button>
 
           {/* Provision Employee Button */}
           <button
@@ -335,6 +367,7 @@ export const TeamAttendancePage = () => {
                 <th style={{ padding: '10px 12px', fontWeight: 600 }}>CHECK-IN</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600 }}>BREAKS</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600 }}>NET SO FAR</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>EXCEL PROOF</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600 }}>STATUS</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>ACTION</th>
               </tr>
@@ -408,6 +441,47 @@ export const TeamAttendancePage = () => {
                   {/* Net so far */}
                   <td style={{ padding: '12px', fontWeight: 700, color: m.netWorkMinutes > 0 ? '#1D8350' : '#8E857C' }}>
                     {m.netWorkFormatted || '—'}
+                  </td>
+
+                  {/* Excel Proof Column */}
+                  <td style={{ padding: '12px' }}>
+                    {(() => {
+                      const eng = teamEngagement.find((e) => e.employeeId === m.employeeId || e.employeeEmail === m.email);
+                      if (m.status === 'NOT_CHECKED_IN') {
+                        return <span style={{ color: '#8E857C', fontSize: '0.78rem' }}>—</span>;
+                      }
+                      if (eng) {
+                        const isHigh = eng.verificationLevel === 'HIGH' || eng.engagementPercentage >= 70;
+                        const isMod = eng.verificationLevel === 'MODERATE' || (eng.engagementPercentage >= 40 && eng.engagementPercentage < 70);
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: 4,
+                                width: 'fit-content',
+                                backgroundColor: isHigh ? '#EBF7F0' : isMod ? '#EFF6FF' : '#FEF6EB',
+                                color: isHigh ? '#1D8350' : isMod ? '#1D4ED8' : '#965B0A',
+                                border: `1px solid ${isHigh ? '#C4E8D1' : isMod ? '#BFDBFE' : '#F8D9A8'}`,
+                              }}
+                              title={`${eng.totalEditsCount} verified edits in ${eng.activeWorkbook || 'Sales Sheet'}`}
+                            >
+                              <FileSpreadsheet size={12} />
+                              <span>{eng.engagementPercentage}% Active</span>
+                            </span>
+                            <span style={{ fontSize: '0.68rem', color: '#8E857C' }}>
+                              {eng.totalEditsCount} verified edits
+                            </span>
+                          </div>
+                        );
+                      }
+                      return <span style={{ color: '#8E857C', fontSize: '0.78rem' }}>Pending pulse</span>;
+                    })()}
                   </td>
 
                   {/* Status */}
@@ -704,6 +778,151 @@ export const TeamAttendancePage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sales Spreadsheet Tracker Hook Modal */}
+      {showScriptModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(28, 25, 23, 0.45)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setShowScriptModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 14,
+              border: '1px solid var(--color-border)',
+              maxWidth: 600,
+              width: '100%',
+              padding: '26px 30px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#EBF7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D8350' }}>
+                  <FileSpreadsheet size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                    Sales Spreadsheet Proof of Work
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-stone)' }}>
+                    Google Sheets & Excel Online Hook · 100% Free
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowScriptModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#8E857C' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-stone)', lineHeight: 1.5, marginBottom: 14 }}>
+              Instruct your sales reps to add this lightweight Apps Script to their sales workbooks. It logs active cell edits to the Attendance Engine, calculating real engagement percentages and flagging inactive ghost sessions.
+            </p>
+
+            <div style={{ position: 'relative', marginBottom: 16 }}>
+              <pre
+                style={{
+                  backgroundColor: '#1E293B',
+                  color: '#E2E8F0',
+                  borderRadius: 8,
+                  padding: '14px 16px',
+                  fontSize: '0.74rem',
+                  fontFamily: 'Consolas, monospace',
+                  overflowX: 'auto',
+                  maxHeight: 200,
+                }}
+              >
+{`var ATTENDANCE_API_URL = "${window.location.origin}/api/v1/activity/pulse";
+
+function onEdit(e) {
+  try {
+    var email = Session.getActiveUser().getEmail();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet();
+    var range = e ? e.range.getA1Notation() : "A1";
+
+    UrlFetchApp.fetch(ATTENDANCE_API_URL, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({
+        employeeEmail: email,
+        workbookName: sheet.getName(),
+        sheetName: e ? e.range.getSheet().getName() : "Sheet1",
+        cellRange: range,
+        activityType: "CELL_EDIT",
+        details: "Cell edited by " + email,
+        loggedAt: new Date().toISOString()
+      }),
+      muteHttpExceptions: true
+    });
+  } catch (err) {
+    Logger.log("Pulse error: " + err);
+  }
+}`}
+              </pre>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`var ATTENDANCE_API_URL = "${window.location.origin}/api/v1/activity/pulse";\n\nfunction onEdit(e) {\n  try {\n    var email = Session.getActiveUser().getEmail();\n    var sheet = SpreadsheetApp.getActiveSpreadsheet();\n    var range = e ? e.range.getA1Notation() : "A1";\n\n    UrlFetchApp.fetch(ATTENDANCE_API_URL, {\n      method: "post",\n      contentType: "application/json",\n      payload: JSON.stringify({\n        employeeEmail: email,\n        workbookName: sheet.getName(),\n        sheetName: e ? e.range.getSheet().getName() : "Sheet1",\n        cellRange: range,\n        activityType: "CELL_EDIT",\n        details: "Cell edited by " + email,\n        loggedAt: new Date().toISOString()\n      }),\n      muteHttpExceptions: true\n    });\n  } catch (err) {\n    Logger.log("Pulse error: " + err);\n  }\n}`);
+                  setCopiedScript(true);
+                  addToast({ type: 'success', title: 'Script Copied', message: 'Apps Script code copied to clipboard!' });
+                  setTimeout(() => setCopiedScript(false), 2500);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: copiedScript ? '#1D8350' : '#334155',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {copiedScript ? <Check size={13} /> : <Copy size={13} />}
+                <span>{copiedScript ? 'Copied!' : 'Copy Script'}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                onClick={() => setShowScriptModal(false)}
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-charcoal)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

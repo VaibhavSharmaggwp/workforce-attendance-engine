@@ -1,5 +1,5 @@
 // API Service with JWT authentication, resilient fallback, and seamless demo mode
-import { MOCK_EMPLOYEES, MOCK_HISTORY_RECORDS, MOCK_TEAM_TODAY, MOCK_YEARLY_OVERVIEW } from './mockData';
+import { MOCK_EMPLOYEES, MOCK_HISTORY_RECORDS, MOCK_TEAM_TODAY, MOCK_YEARLY_OVERVIEW, MOCK_ENGAGEMENT_TODAY, MOCK_TEAM_ENGAGEMENT } from './mockData';
 
 const API_BASE = '/api/v1';
 
@@ -316,6 +316,37 @@ export const api = {
       return MOCK_YEARLY_OVERVIEW;
     } catch {
       return MOCK_YEARLY_OVERVIEW;
+    }
+  },
+
+  // Sales Spreadsheet Activity & Proof of Work
+  sendActivityPulse: async (pulseData) => {
+    try {
+      return await request('/activity/pulse', {
+        method: 'POST',
+        body: JSON.stringify(pulseData),
+      });
+    } catch (err) {
+      return { status: 'SUCCESS', message: 'Simulated activity pulse logged', logId: 'sim-' + Date.now() };
+    }
+  },
+  getTodayEngagement: async () => {
+    try {
+      const res = await request('/activity/today');
+      if (res && res.employeeName) return res;
+      return MOCK_ENGAGEMENT_TODAY;
+    } catch {
+      return MOCK_ENGAGEMENT_TODAY;
+    }
+  },
+  getTeamEngagement: async (date) => {
+    try {
+      const q = date ? `?date=${date}` : '';
+      const res = await request(`/activity/team${q}`);
+      if (res && Array.isArray(res) && res.length > 0) return res;
+      return MOCK_TEAM_ENGAGEMENT;
+    } catch {
+      return MOCK_TEAM_ENGAGEMENT;
     }
   },
 };

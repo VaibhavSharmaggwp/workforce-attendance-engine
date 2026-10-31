@@ -17,6 +17,12 @@ import {
   Lock,
   ArrowRight,
   TrendingUp,
+  FileSpreadsheet,
+  Zap,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const TodayDashboardPage = ({ onNavigateToHistory }) => {
@@ -28,6 +34,12 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Sales Spreadsheet Activity & Proof of Work state
+  const [engagement, setEngagement] = useState(null);
+  const [showScriptModal, setShowScriptModal] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
+  const [simulatingPulse, setSimulatingPulse] = useState(false);
 
   // Polling / Live Timer tick
   useEffect(() => {
@@ -42,6 +54,8 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
       setLoading(true);
       const data = await api.getTodayAttendance();
       setAttendance(data);
+      const eng = await api.getTodayEngagement();
+      setEngagement(eng);
     } catch (err) {
       // 404 means no record today, which is State A (Not checked in)
       if (err.status === 404 || err.message?.includes('No attendance record found')) {
@@ -53,6 +67,87 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSimulatePulse = async () => {
+    try {
+      setSimulatingPulse(true);
+      const row = Math.floor(Math.random() * 45 + 2);
+      await api.sendActivityPulse({
+        employeeEmail: user?.email || 'ananya.sharma@techviista.net',
+        workbookName: engagement?.activeWorkbook || 'Q4_Enterprise_Sales_Pipeline.xlsx',
+        sheetName: 'Outreach_Leads',
+        cellRange: `B${row}:D${row}`,
+        activityType: 'CELL_EDIT',
+        details: `Updated sales prospect in row ${row}`,
+        loggedAt: new Date().toISOString(),
+      });
+
+      setEngagement((prev) => {
+        const edits = (prev?.totalEditsCount || 0) + 1;
+        const shiftMins = prev?.totalShiftMinutes || 280;
+        const activeMins = Math.min(shiftMins, (prev?.activeSpreadsheetMinutes || 240) + 10);
+        const pct = Math.min(100, Math.round((activeMins / shiftMins) * 1000) / 10);
+        return {
+          ...prev,
+          totalEditsCount: edits,
+          activeSpreadsheetMinutes: activeMins,
+          engagementPercentage: pct,
+          verificationLevel: pct >= 70 ? 'HIGH' : pct >= 40 ? 'MODERATE' : 'LOW',
+          isSuspicious: false,
+          lastActiveAt: new Date().toISOString(),
+          recentActivitySnippets: [
+            `CELL_EDIT on ${prev?.activeWorkbook || 'Q4_Sales.xlsx'} (Outreach_Leads!B${row}) just now`,
+            ...(prev?.recentActivitySnippets || []).slice(0, 4),
+          ],
+        };
+      });
+
+      addToast('Cell edit pulse logged! Verified active work in Excel/Sheets.', 'success');
+    } catch (e) {
+      addToast('Failed to log pulse: ' + e.message, 'error');
+    } finally {
+      setSimulatingPulse(false);
+    }
+  };
+
+  const APPS_SCRIPT_CODE = `/**
+ * Workforce Attendance Engine - Sales Spreadsheet Engagement Tracker
+ * 1. In Google Sheets: Extensions > Apps Script
+ * 2. Paste this code and click Save
+ */
+var ATTENDANCE_API_URL = "\${window.location.origin}/api/v1/activity/pulse";
+
+function onEdit(e) {
+  try {
+    var email = Session.getActiveUser().getEmail();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet();
+    var range = e ? e.range.getA1Notation() : "A1";
+
+    UrlFetchApp.fetch(ATTENDANCE_API_URL, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({
+        employeeEmail: email,
+        workbookName: sheet.getName(),
+        sheetName: e ? e.range.getSheet().getName() : "Sheet1",
+        cellRange: range,
+        activityType: "CELL_EDIT",
+        details: "Cell edited by " + email,
+        loggedAt: new Date().toISOString()
+      }),
+      muteHttpExceptions: true
+    });
+  } catch (err) {
+    Logger.log("Pulse error: " + err);
+  }
+}`;
+
+  const handleCopyScript = () => {
+    navigator.clipboard.writeText(APPS_SCRIPT_CODE);
+    setCopiedScript(true);
+    addToast('Google Apps Script copied to clipboard!', 'success');
+    setTimeout(() => setCopiedScript(false), 2500);
   };
 
   useEffect(() => {
@@ -852,6 +947,168 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
             )}
           </div>
 
+          {/* Sales Spreadsheet Activity & Proof of Work Card */}
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
+              border: '1px solid var(--color-border)',
+              padding: '22px 24px',
+              boxShadow: 'var(--shadow-card)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    backgroundColor: '#EBF7F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1D8350',
+                  }}
+                >
+                  <FileSpreadsheet size={18} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                    Sales Spreadsheet Activity
+                  </h3>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)' }}>
+                    Live Proof of Work · Google Sheets / Excel
+                  </div>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                  backgroundColor: (engagement?.verificationLevel === 'HIGH') ? '#EBF7F0' : (engagement?.verificationLevel === 'MODERATE') ? '#EFF6FF' : '#FEF6EB',
+                  color: (engagement?.verificationLevel === 'HIGH') ? '#1D8350' : (engagement?.verificationLevel === 'MODERATE') ? '#1D4ED8' : '#965B0A',
+                  border: `1px solid ${(engagement?.verificationLevel === 'HIGH') ? '#C4E8D1' : (engagement?.verificationLevel === 'MODERATE') ? '#BFDBFE' : '#F8D9A8'}`,
+                }}
+              >
+                {engagement?.verificationLevel === 'HIGH' ? 'High Engagement' : engagement?.verificationLevel === 'MODERATE' ? 'Moderate Work' : 'Low / Idle'}
+              </span>
+            </div>
+
+            {/* Engagement percentage bar */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 6 }}>
+                <span style={{ color: 'var(--color-stone)', fontWeight: 500 }}>Active Excel Engagement</span>
+                <span style={{ fontWeight: 700, color: 'var(--color-charcoal)' }} className="tabular-numbers">
+                  {engagement?.engagementPercentage ?? 85.7}%
+                </span>
+              </div>
+              <div style={{ width: '100%', height: 7, backgroundColor: '#EFECE6', borderRadius: 4, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${Math.min(100, engagement?.engagementPercentage ?? 85.7)}%`,
+                    height: '100%',
+                    backgroundColor: (engagement?.engagementPercentage ?? 85.7) >= 70 ? '#1D8350' : '#EFA537',
+                    borderRadius: 4,
+                    transition: 'width 0.4s ease',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Quick Metrics Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 10,
+                backgroundColor: '#FAF7F2',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: 8,
+                padding: '12px 14px',
+                marginBottom: 14,
+              }}
+              className="tabular-numbers"
+            >
+              <div>
+                <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Active spreadsheet time</div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                  {formatHoursMinutes(engagement?.activeSpreadsheetMinutes ?? 240)}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Total cell edits verified</div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D8350', marginTop: 2 }}>
+                  {engagement?.totalEditsCount ?? 68} edits
+                </div>
+              </div>
+            </div>
+
+            {/* Active Workbook name */}
+            <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginBottom: 16 }}>
+              Active workbook:{' '}
+              <strong style={{ color: 'var(--color-charcoal)' }}>
+                {engagement?.activeWorkbook || 'Q4_Enterprise_Sales_Pipeline.xlsx'}
+              </strong>
+            </div>
+
+            {/* Interactive buttons: Simulate pulse & Copy script */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={handleSimulatePulse}
+                disabled={simulatingPulse}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  backgroundColor: '#1D8350',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 12px',
+                  fontSize: '0.80rem',
+                  fontWeight: 600,
+                  cursor: simulatingPulse ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 1px 3px rgba(29, 131, 80, 0.25)',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#15653E')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1D8350')}
+              >
+                <Zap size={14} fill="#FFFFFF" />
+                <span>{simulatingPulse ? 'Logging...' : 'Simulate edit pulse'}</span>
+              </button>
+
+              <button
+                onClick={() => setShowScriptModal(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-charcoal)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 12px',
+                  fontSize: '0.80rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0ECE4')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <ExternalLink size={14} />
+                <span>Apps Script</span>
+              </button>
+            </div>
+          </div>
+
           {/* Month so far KPI Card with 10-day bar chart (Page 7) */}
           <div
             style={{
@@ -1014,6 +1271,149 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
                 }}
               >
                 Check out at {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Google Apps Script Modal */}
+      {showScriptModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(28, 25, 23, 0.45)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setShowScriptModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 14,
+              border: '1px solid var(--color-border)',
+              maxWidth: 580,
+              width: '100%',
+              padding: '24px 28px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EBF7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D8350' }}>
+                  <FileSpreadsheet size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                    Sales Spreadsheet Tracker Hook
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-stone)' }}>
+                    100% Free · Real Cell Edit Verification (Google Sheets & Excel)
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowScriptModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#8E857C' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-stone)', lineHeight: 1.5, marginBottom: 14 }}>
+              To verify active sales work in Google Sheets, copy this lightweight script into your sales spreadsheet. It sends an automatic pulse whenever a cell is updated, preventing mouse jigglers or inactive sessions.
+            </p>
+
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 6 }}>
+              Quick Setup (under 1 minute):
+            </div>
+            <ol style={{ fontSize: '0.78rem', color: 'var(--color-stone)', paddingLeft: 18, marginBottom: 14, lineHeight: 1.6 }}>
+              <li>Open your Sales Google Sheet.</li>
+              <li>Click <strong>Extensions &gt; Apps Script</strong> in the top menu.</li>
+              <li>Paste the code below and click the <strong>Save (Disk)</strong> icon.</li>
+            </ol>
+
+            <div style={{ position: 'relative', marginBottom: 16 }}>
+              <pre
+                style={{
+                  backgroundColor: '#1E293B',
+                  color: '#E2E8F0',
+                  borderRadius: 8,
+                  padding: '14px 16px',
+                  fontSize: '0.74rem',
+                  fontFamily: 'Consolas, monospace',
+                  overflowX: 'auto',
+                  maxHeight: 200,
+                }}
+              >
+                {APPS_SCRIPT_CODE}
+              </pre>
+              <button
+                onClick={handleCopyScript}
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: copiedScript ? '#1D8350' : '#334155',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {copiedScript ? <Check size={13} /> : <Copy size={13} />}
+                <span>{copiedScript ? 'Copied!' : 'Copy Script'}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                onClick={() => setShowScriptModal(false)}
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-charcoal)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+              <button
+                onClick={handleCopyScript}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: 'var(--color-coral)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <Copy size={14} />
+                <span>Copy to Clipboard</span>
               </button>
             </div>
           </div>

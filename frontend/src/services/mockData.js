@@ -461,3 +461,102 @@ export const MOCK_YEARLY_OVERVIEW = {
   ]
 };
 
+// Sales Spreadsheet Engagement (Google Sheets / Excel Proof of Work)
+export const MOCK_ENGAGEMENT_TODAY = {
+  employeeId: 'e1111111-1111-1111-1111-111111111111',
+  employeeName: 'Ananya Sharma',
+  employeeEmail: 'ananya.sharma@techviista.net',
+  workDate: '2026-10-22',
+  totalShiftMinutes: 280,
+  activeSpreadsheetMinutes: 240,
+  engagementPercentage: 85.7,
+  totalEditsCount: 68,
+  lastActiveAt: '2026-10-22T14:15:00+05:30',
+  activeWorkbook: 'Q4_Enterprise_Sales_Pipeline.xlsx',
+  verificationLevel: 'HIGH',
+  isSuspicious: false,
+  recentActivitySnippets: [
+    'CELL_EDIT on Q4_Enterprise_Sales_Pipeline.xlsx (Deals!F18) at 02:15 PM',
+    'ROW_INSERT on Q4_Enterprise_Sales_Pipeline.xlsx (Leads!A42) at 02:08 PM',
+    'CELL_EDIT on Q4_Enterprise_Sales_Pipeline.xlsx (Deals!D18) at 01:52 PM',
+    'CELL_EDIT on Outreach_Tracker_Oct.xlsx (Contacts!C11) at 12:44 PM',
+    'CELL_EDIT on Outreach_Tracker_Oct.xlsx (Contacts!B11) at 12:39 PM'
+  ]
+};
+
+export const MOCK_TEAM_ENGAGEMENT = [
+  {
+    employeeId: 'e1111111-1111-1111-1111-111111111111',
+    employeeName: 'Ananya Sharma',
+    employeeEmail: 'ananya.sharma@techviista.net',
+    totalShiftMinutes: 280,
+    activeSpreadsheetMinutes: 240,
+    engagementPercentage: 85.7,
+    totalEditsCount: 68,
+    activeWorkbook: 'Q4_Enterprise_Sales_Pipeline.xlsx',
+    verificationLevel: 'HIGH',
+    isSuspicious: false
+  },
+  {
+    employeeId: 'e3333333-3333-3333-3333-333333333333',
+    employeeName: 'Rohit Verma',
+    employeeEmail: 'rohit.verma@techviista.net',
+    totalShiftMinutes: 290,
+    activeSpreadsheetMinutes: 230,
+    engagementPercentage: 79.3,
+    totalEditsCount: 54,
+    activeWorkbook: 'SaaS_Prospects_NorthAmerica.xlsx',
+    verificationLevel: 'HIGH',
+    isSuspicious: false
+  },
+  {
+    employeeId: 'e4444444-4444-4444-4444-444444444444',
+    employeeName: 'Priya Nair',
+    employeeEmail: 'priya.nair@techviista.net',
+    totalShiftMinutes: 260,
+    activeSpreadsheetMinutes: 190,
+    engagementPercentage: 73.1,
+    totalEditsCount: 42,
+    activeWorkbook: 'Lead_Nurturing_Sequence.xlsx',
+    verificationLevel: 'HIGH',
+    isSuspicious: false
+  },
+  {
+    employeeId: 'e5555555-5555-5555-5555-555555555555',
+    employeeName: 'Karan Mehta',
+    employeeEmail: 'karan.mehta@techviista.net',
+    totalShiftMinutes: 270,
+    activeSpreadsheetMinutes: 110,
+    engagementPercentage: 40.7,
+    totalEditsCount: 19,
+    activeWorkbook: 'Q4_Direct_Sales.xlsx',
+    verificationLevel: 'MODERATE',
+    isSuspicious: false
+  },
+  {
+    employeeId: 'e6666666-6666-6666-6666-666666666666',
+    employeeName: 'Sneha Iyer',
+    employeeEmail: 'sneha.iyer@techviista.net',
+    totalShiftMinutes: 295,
+    activeSpreadsheetMinutes: 260,
+    engagementPercentage: 88.1,
+    totalEditsCount: 77,
+    activeWorkbook: 'Key_Accounts_Renewal_Tracker.xlsx',
+    verificationLevel: 'HIGH',
+    isSuspicious: false
+  },
+  {
+    employeeId: 'e7777777-7777-7777-7777-777777777777',
+    employeeName: 'Arjun Reddy',
+    employeeEmail: 'arjun.reddy@techviista.net',
+    totalShiftMinutes: 250,
+    activeSpreadsheetMinutes: 40,
+    engagementPercentage: 16.0,
+    totalEditsCount: 5,
+    activeWorkbook: 'Cold_Calls_Campaign.xlsx',
+    verificationLevel: 'LOW',
+    isSuspicious: true
+  }
+];
+
+

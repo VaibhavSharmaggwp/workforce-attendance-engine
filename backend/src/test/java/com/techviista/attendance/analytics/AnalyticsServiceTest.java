@@ -123,3 +123,4 @@ class AnalyticsServiceTest {
         assertThat(overview).isNotNull();
     }
 }
+
