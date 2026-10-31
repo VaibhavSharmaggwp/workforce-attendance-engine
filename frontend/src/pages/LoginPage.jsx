@@ -1,38 +1,66 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn } from 'lucide-react';
 
 export const LoginPage = () => {
   const { loginWithCredentials, authError, setAuthError } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('MANAGER'); // default to Manager for easy admin access
+  const [email, setEmail] = useState('techviista53@gmail.com');
+  const [password, setPassword] = useState('password');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
 
-  const handleGoogleSignIn = () => {
-    setIsGoogleRedirecting(true);
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
-    window.location.href = `${backendUrl}/oauth2/authorization/google`;
+  const handleRoleChange = (role) => {
+    setSelectedRole(role);
+    setAuthError(null);
+    if (role === 'MANAGER') {
+      setEmail('techviista53@gmail.com');
+      setPassword('password');
+    } else {
+      setEmail('');
+      setPassword('');
+    }
   };
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      setAuthError('Please enter your work email address.');
+  const handleGoogleSignIn = async () => {
+    setIsGoogleRedirecting(true);
+    setAuthError(null);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      await fetch(`${backendUrl}/api/v1/auth/health`, { signal: controller.signal, mode: 'no-cors' });
+      clearTimeout(timeoutId);
+      window.location.href = `${backendUrl}/oauth2/authorization/google`;
+    } catch {
+      setIsGoogleRedirecting(false);
+      setAuthError(
+        'Backend server (http://localhost:8080) is not currently running. To use Google Sign-in, please start the Spring Boot backend. In the meantime, use the direct Sign In button below.'
+      );
+    }
+  };
+
+  const handleEmailSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const targetEmail = email.trim();
+    if (!targetEmail) {
+      setAuthError('Please enter your Gmail / work email address.');
       return;
     }
     setIsSubmitting(true);
+    setAuthError(null);
     try {
-      await loginWithCredentials(email, password);
+      await loginWithCredentials(targetEmail, password || 'password');
     } catch (err) {
-      // error handled in auth context
+      // error handled in AuthContext
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isManager = selectedRole === 'MANAGER';
 
   return (
     <div
@@ -62,7 +90,7 @@ export const LoginPage = () => {
         <div style={{ padding: '44px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             {/* Company Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <img
                 src="/logo.jpg"
                 alt="Eduqynt Techviista Pvt. Ltd."
@@ -86,22 +114,86 @@ export const LoginPage = () => {
               </div>
             </div>
 
-            <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-stone)', fontWeight: 600 }}>
-              Employee Sign-In
+            {/* Portal Role Switcher: Manager vs Employee */}
+            <div
+              style={{
+                display: 'flex',
+                backgroundColor: '#F3EFE9',
+                borderRadius: 10,
+                padding: 4,
+                marginBottom: 22,
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => handleRoleChange('MANAGER')}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '9px 12px',
+                  borderRadius: 7,
+                  border: 'none',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  backgroundColor: isManager ? '#FFFEFC' : 'transparent',
+                  color: isManager ? 'var(--color-charcoal)' : 'var(--color-stone)',
+                  boxShadow: isManager ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Shield size={15} color={isManager ? '#D9502A' : '#8E857C'} />
+                <span>Manager Sign-In</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleChange('EMPLOYEE')}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '9px 12px',
+                  borderRadius: 7,
+                  border: 'none',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  backgroundColor: !isManager ? '#FFFEFC' : 'transparent',
+                  color: !isManager ? 'var(--color-charcoal)' : 'var(--color-stone)',
+                  boxShadow: !isManager ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <User size={15} color={!isManager ? '#1D8350' : '#8E857C'} />
+                <span>Employee Sign-In</span>
+              </button>
             </div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4, letterSpacing: '-0.02em' }}>
-              Welcome back
+
+            <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: isManager ? '#D9502A' : '#1D8350', fontWeight: 700 }}>
+              {isManager ? 'Manager Portal' : 'Employee Portal'}
+            </div>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4, letterSpacing: '-0.02em' }}>
+              {isManager ? 'Welcome, Manager' : 'Welcome back'}
             </h2>
-            <p style={{ fontSize: '0.88rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
-              Sign in with the Google / Gmail account registered by your manager to record attendance.
+            <p style={{ fontSize: '0.86rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
+              {isManager
+                ? 'Sign in as Mayank Verma to manage team attendance, review hours, and register employees.'
+                : 'Sign in with your registered Gmail to record check-in, breaks, and daily attendance.'}
             </p>
 
-            {/* Error Banner (Account not linked state as per UI Page 6) */}
+            {/* Error Banner */}
             {authError && (
               <div
                 className="animate-fade-in"
                 style={{
-                  marginTop: 20,
+                  marginTop: 18,
                   backgroundColor: '#FCECEF',
                   border: '1px solid #F4BDC5',
                   borderRadius: 'var(--radius-control)',
@@ -113,7 +205,7 @@ export const LoginPage = () => {
               >
                 <AlertCircle size={18} color="#BF3A4C" style={{ flexShrink: 0, marginTop: 2 }} />
                 <div style={{ fontSize: '0.82rem', color: '#8E2030', lineHeight: 1.4 }}>
-                  <div style={{ fontWeight: 600 }}>Account Not Linked</div>
+                  <div style={{ fontWeight: 600 }}>Notice</div>
                   {authError}
                   <div style={{ marginTop: 6 }}>
                     <button
@@ -129,7 +221,7 @@ export const LoginPage = () => {
                         fontSize: '0.78rem',
                       }}
                     >
-                      Use a different account
+                      Dismiss
                     </button>
                   </div>
                 </div>
@@ -137,7 +229,7 @@ export const LoginPage = () => {
             )}
 
             {/* Primary Google Sign-in Button */}
-            <div style={{ marginTop: 26 }}>
+            <div style={{ marginTop: 22 }}>
               <button
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleRedirecting}
@@ -174,135 +266,123 @@ export const LoginPage = () => {
                   </>
                 )}
               </button>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 10 }}>
-                <span style={{ fontSize: '0.74rem', color: '#8E857C', lineHeight: 1.4 }}>
-                  ⓘ Sign in with your Gmail account. Ask your manager to register your Gmail ID before your first sign-in.
+              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 8 }}>
+                <span style={{ fontSize: '0.73rem', color: '#8E857C', lineHeight: 1.4 }}>
+                  {isManager
+                    ? 'ⓘ Signs in directly with techviista53@gmail.com once backend is running.'
+                    : 'ⓘ Sign in with the Gmail registered by your manager.'}
                 </span>
               </div>
             </div>
 
-            {/* Optional Password Flow Toggle */}
-            <div style={{ marginTop: 24, borderTop: '1px solid var(--color-border)', paddingTop: 18 }}>
-              {!showPasswordFields ? (
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordFields(true)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-control)',
-                    width: '100%',
-                    padding: '9px 14px',
-                    color: 'var(--color-charcoal)',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#F7F3EE')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  Sign in with email and password
-                </button>
-              ) : (
-                <form onSubmit={handlePasswordSubmit} className="animate-fade-in">
-                  <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginBottom: 12 }}>
-                    Password sign-in: only if enabled for your account
-                  </div>
-
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
-                      Registered Gmail / Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="e.g. employee@gmail.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        borderRadius: 'var(--radius-control)',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '0.86rem',
-                        color: 'var(--color-charcoal)',
-                        backgroundColor: '#FFFEFC',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)' }}>
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--color-stone)',
-                          fontSize: '0.74rem',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
-                        {showPassword ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        borderRadius: 'var(--radius-control)',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '0.86rem',
-                        color: 'var(--color-charcoal)',
-                        backgroundColor: '#FFFEFC',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, fontSize: '0.78rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-stone)', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                      />
-                      Remember me
-                    </label>
-                    <span style={{ color: 'var(--color-stone)', cursor: 'pointer' }}>
-                      Forgot password?
-                    </span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
+            {/* Direct Email / Password Sign-in Form */}
+            <div style={{ marginTop: 20, borderTop: '1px solid var(--color-border)', paddingTop: 18 }}>
+              <form onSubmit={handleEmailSubmit}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
+                    {isManager ? 'Manager Gmail Address' : 'Registered Employee Gmail'}
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder={isManager ? 'techviista53@gmail.com' : 'e.g. employee@gmail.com'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     style={{
                       width: '100%',
-                      backgroundColor: 'var(--color-charcoal)',
-                      color: '#FFFEFC',
-                      border: 'none',
+                      padding: '9px 12px',
                       borderRadius: 'var(--radius-control)',
-                      padding: '10px 14px',
+                      border: '1px solid var(--color-border)',
                       fontSize: '0.86rem',
-                      fontWeight: 600,
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                      color: 'var(--color-charcoal)',
+                      backgroundColor: '#FFFEFC',
                     }}
-                  >
-                    {isSubmitting ? 'Authenticating...' : 'Sign in'}
-                  </button>
-                </form>
-              )}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)' }}>
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-stone)',
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: 'var(--radius-control)',
+                      border: '1px solid var(--color-border)',
+                      fontSize: '0.86rem',
+                      color: 'var(--color-charcoal)',
+                      backgroundColor: '#FFFEFC',
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, fontSize: '0.78rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-stone)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    Remember me
+                  </label>
+                  <span style={{ color: 'var(--color-stone)', cursor: 'pointer' }}>
+                    Need access?
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'var(--color-charcoal)',
+                    color: '#FFFEFC',
+                    border: 'none',
+                    borderRadius: 'var(--radius-control)',
+                    padding: '10px 14px',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <LogIn size={15} />
+                  <span>
+                    {isSubmitting
+                      ? 'Authenticating...'
+                      : isManager
+                      ? 'Sign In as Manager (Mayank Verma)'
+                      : 'Sign In as Employee'}
+                  </span>
+                </button>
+              </form>
             </div>
           </div>
 
