@@ -854,8 +854,8 @@ export const TeamAttendancePage = () => {
               </button>
             </div>
 
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-stone)', marginBottom: 20 }}>
-              Add a new employee to the organization. They will immediately be permitted to sign in with their Google account.
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-stone)', marginBottom: 18, lineHeight: 1.45 }}>
+              Register an employee using their <strong>Gmail address</strong>. When the employee clicks <em>"Continue with Google"</em>, they must sign in with this exact Gmail account.
             </p>
 
             <form onSubmit={handleAddEmployee}>
@@ -881,12 +881,12 @@ export const TeamAttendancePage = () => {
 
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
-                  Corporate Work Email
+                  Google / Gmail Address
                 </label>
                 <input
                   type="email"
                   required
-                  placeholder="e.g. maya.patel@techviista.net"
+                  placeholder="e.g. maya.patel@gmail.com"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   style={{
@@ -897,6 +897,9 @@ export const TeamAttendancePage = () => {
                     fontSize: '0.86rem',
                   }}
                 />
+                <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 4 }}>
+                  ⓘ No corporate email needed. Any personal or work Gmail (@gmail.com) works 100% free with Google SSO.
+                </div>
               </div>
 
               <div style={{ marginBottom: 22 }}>

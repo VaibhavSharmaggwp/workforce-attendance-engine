@@ -130,16 +130,16 @@ describe('Sales Spreadsheet Activity & Proof-of-Work Verification', () => {
     });
 
     const nameInput = screen.getByPlaceholderText(/Maya Patel/i);
-    const emailInput = screen.getByPlaceholderText(/maya.patel@techviista.net/i);
+    const emailInput = screen.getByPlaceholderText(/maya.patel@gmail.com/i);
     fireEvent.change(nameInput, { target: { value: 'Pooja Sharma' } });
-    fireEvent.change(emailInput, { target: { value: 'pooja.sharma@techviista.net' } });
+    fireEvent.change(emailInput, { target: { value: 'pooja.sharma@gmail.com' } });
 
     const submitBtn = screen.getByRole('button', { name: /Add Employee/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
       expect(screen.getByText('Pooja Sharma')).toBeDefined();
-      expect(screen.getByText('pooja.sharma@techviista.net')).toBeDefined();
+      expect(screen.getByText('pooja.sharma@gmail.com')).toBeDefined();
     });
   });
 });

@@ -102,7 +102,7 @@ export const LoginPage = () => {
               Welcome back
             </h2>
             <p style={{ fontSize: '0.88rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
-              Sign in with your company Google account to record today's attendance.
+              Sign in with the Google / Gmail account registered by your manager to record attendance.
             </p>
 
             {/* Error Banner (Account not linked state as per UI Page 6) */}
@@ -185,7 +185,7 @@ export const LoginPage = () => {
               </button>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 10 }}>
                 <span style={{ fontSize: '0.74rem', color: '#8E857C', lineHeight: 1.4 }}>
-                  ⓘ Use your work account. If you're new, your manager adds you to the system before your first sign-in.
+                  ⓘ Sign in with your Gmail account. Ask your manager to register your Gmail ID before your first sign-in.
                 </span>
               </div>
             </div>
@@ -220,11 +220,11 @@ export const LoginPage = () => {
 
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
-                      Work email
+                      Registered Gmail / Email
                     </label>
                     <input
                       type="email"
-                      placeholder="ananya.sharma@techviista.net"
+                      placeholder="e.g. employee@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       style={{
