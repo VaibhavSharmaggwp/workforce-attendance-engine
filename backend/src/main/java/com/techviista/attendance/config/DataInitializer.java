@@ -27,21 +27,41 @@ public class DataInitializer implements CommandLineRunner {
     private final AttendanceRepository attendanceRepository;
     private final BreakSessionRepository breakSessionRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.email:techviista53@gmail.com}")
+    private String initialManagerEmail;
+
+    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.name:Mayank Verma}")
+    private String initialManagerName;
+
     @Override
     public void run(String... args) {
-        if (employeeRepository.count() > 0) {
+        // Always ensure the configured primary manager exists
+        if (initialManagerEmail != null && !initialManagerEmail.isBlank()) {
+            if (employeeRepository.findByEmail(initialManagerEmail).isEmpty()) {
+                employeeRepository.save(Employee.builder()
+                        .fullName(initialManagerName)
+                        .email(initialManagerEmail)
+                        .role(EmployeeRole.MANAGER)
+                        .isActive(true)
+                        .build());
+                log.info("Provisioned initial manager account: {} <{}>", initialManagerName, initialManagerEmail);
+            }
+        }
+
+        if (employeeRepository.count() > 1) {
             return;
         }
 
         log.info("Seeding initial employees and attendance records from PRD/UI specification...");
 
-        // 1. Manager: Rahul Khanna
-        Employee manager = employeeRepository.save(Employee.builder()
-                .fullName("Rahul Khanna")
-                .email("rahul.khanna@techviista.net")
-                .role(EmployeeRole.MANAGER)
-                .isActive(true)
-                .build());
+        // 1. Manager: Mayank Verma
+        Employee manager = employeeRepository.findByEmail(initialManagerEmail)
+                .orElseGet(() -> employeeRepository.save(Employee.builder()
+                        .fullName(initialManagerName)
+                        .email(initialManagerEmail)
+                        .role(EmployeeRole.MANAGER)
+                        .isActive(true)
+                        .build()));
 
         // 2. Primary Employee: Ananya Sharma
         Employee ananya = employeeRepository.save(Employee.builder()

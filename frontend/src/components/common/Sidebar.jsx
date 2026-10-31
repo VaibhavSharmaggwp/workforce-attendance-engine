@@ -129,33 +129,35 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
         </nav>
       </div>
 
-      {/* Bottom section: Demo switch + User profile */}
+      {/* Bottom section: Demo switch (Dev only) + User profile */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 16, borderTop: '1px solid #302A25' }}>
-        {/* Quick Demo Switcher */}
-        <button
-          onClick={handleToggleDemoRole}
-          title="Toggle between Employee and Manager view"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            width: '100%',
-            padding: '7px 10px',
-            borderRadius: 6,
-            background: '#2B2520',
-            border: '1px solid #3D352E',
-            color: '#D9D2C7',
-            fontSize: '0.74rem',
-            cursor: 'pointer',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#362E27')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#2B2520')}
-        >
-          <ArrowLeftRight size={13} color="#EFA537" />
-          <span>Switch to {user?.role === 'MANAGER' ? 'Employee' : 'Manager'} view</span>
-        </button>
+        {/* Quick Demo Switcher - Dev Only (Stripped in Production Build) */}
+        {import.meta.env.DEV && (
+          <button
+            onClick={handleToggleDemoRole}
+            title="Toggle between Employee and Manager view (Dev Mode)"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '7px 10px',
+              borderRadius: 6,
+              background: '#2B2520',
+              border: '1px solid #3D352E',
+              color: '#D9D2C7',
+              fontSize: '0.74rem',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#362E27')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = '#2B2520')}
+          >
+            <ArrowLeftRight size={13} color="#EFA537" />
+            <span>Switch to {user?.role === 'MANAGER' ? 'Employee' : 'Manager'} view</span>
+          </button>
+        )}
 
         {/* Current user card */}
         <div

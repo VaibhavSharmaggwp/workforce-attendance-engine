@@ -10,8 +10,8 @@ export const MOCK_EMPLOYEES = [
   },
   {
     id: 'e2222222-2222-2222-2222-222222222222',
-    fullName: 'Rahul Khanna',
-    email: 'rahul.khanna@techviista.net',
+    fullName: 'Mayank Verma',
+    email: 'techviista53@gmail.com',
     role: 'MANAGER',
     active: true,
   },

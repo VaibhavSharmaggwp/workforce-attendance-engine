@@ -194,7 +194,7 @@ export const api = {
       if (res && res.length > 0) return res;
       const localTeam = getProvisionedTeam();
       return [
-        { id: 'mgr-rahul', fullName: 'Rahul Khanna', email: 'rahul.khanna@techviista.net', role: 'MANAGER', active: true },
+        { id: 'mgr-mayank', fullName: 'Mayank Verma', email: 'techviista53@gmail.com', role: 'MANAGER', active: true },
         ...localTeam.map(m => ({
           id: m.employeeId || 'emp-' + m.email,
           fullName: m.fullName,
@@ -206,7 +206,7 @@ export const api = {
     } catch {
       const localTeam = getProvisionedTeam();
       return [
-        { id: 'mgr-rahul', fullName: 'Rahul Khanna', email: 'rahul.khanna@techviista.net', role: 'MANAGER', active: true },
+        { id: 'mgr-mayank', fullName: 'Mayank Verma', email: 'techviista53@gmail.com', role: 'MANAGER', active: true },
         ...localTeam.map(m => ({
           id: m.employeeId || 'emp-' + m.email,
           fullName: m.fullName,
