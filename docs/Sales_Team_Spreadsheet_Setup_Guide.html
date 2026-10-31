@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Team Spreadsheet Proof-of-Work Setup Guide — Eduqynt Techviista</title>
+  <style>
+    :root {
+      --primary: #1D8350;
+      --primary-light: #EBF7F0;
+      --coral: #D9502A;
+      --coral-light: #FEF0EC;
+      --charcoal: #1F1B18;
+      --stone: #6B635B;
+      --border: #E8E2D9;
+      --bg: #F8F6F1;
+      --card-bg: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--charcoal);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      padding: 48px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--charcoal);
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      color: var(--stone);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-green {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid #C4E8D1;
+    }
+
+    .badge-coral {
+      background: var(--coral-light);
+      color: var(--coral);
+      border: 1px solid #F8C8BA;
+    }
+
+    .btn-print {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(29, 131, 80, 0.25);
+    }
+
+    .btn-print:hover {
+      background: #15653E;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      color: var(--charcoal);
+      margin: 32px 0 16px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      color: var(--charcoal);
+      margin: 20px 0 8px;
+    }
+
+    p, li {
+      font-size: 0.92rem;
+      color: #3D3730;
+      line-height: 1.65;
+    }
+
+    ol, ul {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .callout {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      font-size: 0.88rem;
+    }
+
+    .callout-coral {
+      background: var(--coral-light);
+      border-left-color: var(--coral);
+    }
+
+    pre {
+      background: #1E293B;
+      color: #E2E8F0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      line-height: 1.5;
+    }
+
+    .daily-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .flow-step {
+      background: #FAF8F5;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .flow-time {
+      font-weight: 800;
+      color: var(--coral);
+      font-size: 0.88rem;
+    }
+
+    .flow-action {
+      font-size: 0.80rem;
+      color: var(--charcoal);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .faq {
+      margin-top: 14px;
+    }
+
+    .faq-item {
+      margin-bottom: 16px;
+    }
+
+    .faq-q {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--charcoal);
+    }
+
+    .faq-a {
+      font-size: 0.88rem;
+      color: var(--stone);
+      margin-top: 4px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .btn-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>Eduqynt Techviista Pvt. Ltd.</h1>
+        <p>Sales Representative Quick-Start Guide · Automated Proof of Work</p>
+        <div class="badge-bar">
+          <span class="badge badge-green">Setup time: 2 mins</span>
+          <span class="badge badge-coral">100% Free Setup</span>
+        </div>
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        🖨️ Print / Save as PDF
+      </button>
+    </header>
+
+    <div class="callout">
+      <strong>Why this setup?</strong> As a sales rep, your daily focus is cold-calling, client demos, and updating your leads sheet. This setup automatically credits your attendance based on your active spreadsheet work, so you never have to worry about keeping the attendance browser tab open!
+    </div>
+
+    <!-- PATH A: GOOGLE SHEETS -->
+    <h2>1. If You Use Google Sheets (Recommended)</h2>
+    <p>Follow these 4 simple steps to connect your sales sheet in under 60 seconds:</p>
+
+    <ol>
+      <li><strong>Open your sales leads sheet</strong> in Google Chrome.</li>
+      <li>In the top menu bar, click <strong>Extensions ➔ Apps Script</strong>. A new tab will open with a code editor.</li>
+      <li><strong>Delete any default code</strong> in the editor, and paste the script below:</li>
+    </ol>
+
+    <pre><code>/**
+ * Eduqynt Techviista - Sales Spreadsheet Activity Tracker
+ * Automatically verifies active sales work for attendance credit.
+ */
+var ATTENDANCE_API_URL = "http://localhost:8080/api/v1/activity/pulse";
+
+function onEdit(e) {
+  try {
+    var userEmail = Session.getActiveUser().getEmail();
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = e ? e.range.getSheet() : spreadsheet.getActiveSheet();
+    var range = e ? e.range.getA1Notation() : "A1";
+
+    var payload = {
+      employeeEmail: userEmail,
+      workbookName: spreadsheet.getName(),
+      sheetName: sheet.getName(),
+      cellRange: range,
+      activityType: "CELL_EDIT",
+      details: "Cell update in " + sheet.getName() + "!" + range,
+      loggedAt: new Date().toISOString()
+    };
+
+    var options = {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    UrlFetchApp.fetch(ATTENDANCE_API_URL, options);
+  } catch (err) {
+    Logger.log("Attendance pulse error: " + err);
+  }
+}
+
+function testConnection() {
+  onEdit(null);
+  Logger.log("Test pulse sent successfully!");
+}</code></pre>
+
+    <ol start="4">
+      <li>Click the <strong>Save</strong> disk icon (or press <code>Ctrl + S</code>).</li>
+      <li><strong>Done!</strong> Every lead entered or cell edited will now automatically register on your daily attendance score.</li>
+    </ol>
+
+    <!-- PATH B: DESKTOP EXCEL -->
+    <h2>2. If You Use Desktop Microsoft Excel (.xlsx on PC)</h2>
+    <p>If you work offline in Microsoft Excel installed on Windows:</p>
+
+    <ol>
+      <li>Open your sales spreadsheet in <strong>Microsoft Excel</strong>.</li>
+      <li>Press the keyboard shortcut <strong><code>ALT + F11</code></strong> to open the VBA Code Editor.</li>
+      <li>On the left pane under <em>Project - VBAProject</em>, <strong>double-click on <code>ThisWorkbook</code></strong>.</li>
+      <li>Paste this code into the white code box:</li>
+    </ol>
+
+    <pre><code>Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
+    On Error Resume Next
+    
+    Dim http As Object
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    
+    Dim url As String
+    url = "http://localhost:8080/api/v1/activity/pulse"
+    
+    Dim jsonPayload As String
+    jsonPayload = "{""employeeEmail"":""" & Application.UserName & "@techviista.net""," & _
+                  """workbookName"":""" & ThisWorkbook.Name & """," & _
+                  """sheetName"":""" & Sh.Name & """," & _
+                  """cellRange"":""" & Target.Address & """," & _
+                  """activityType"":""CELL_EDIT""}"
+                  
+    http.Open "POST", url, True
+    http.setRequestHeader "Content-Type", "application/json"
+    http.send jsonPayload
+End Sub</code></pre>
+
+    <ol start="5">
+      <li>Click <strong>File ➔ Save As</strong> and change the file type to: <strong>Excel Macro-Enabled Workbook (*.xlsm)</strong>.</li>
+      <li><strong>Done!</strong> Whenever you work inside this file, Excel silently sends your proof-of-work pulses to the portal.</li>
+    </ol>
+
+    <!-- DAILY ROUTINE -->
+    <h2>3. Your Simple Daily Routine</h2>
+    <div class="daily-flow">
+      <div class="flow-step">
+        <div class="flow-time">09:00 AM</div>
+        <div class="flow-action">Log in &amp; Click "Check In"</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-time">All Day</div>
+        <div class="flow-action">Work normally inside your Sales Sheet</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-time">01:00 PM</div>
+        <div class="flow-action">Lunch? Click "Start Break"</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-time">02:00 PM</div>
+        <div class="flow-action">Back? Click "End Break"</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-time">05:30 PM</div>
+        <div class="flow-action">Done? Click "Check Out"</div>
+      </div>
+    </div>
+
+    <!-- FAQ & PRIVACY -->
+    <h2>4. Privacy &amp; Frequently Asked Questions</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q">Does the system spy on my customer data, phone numbers, or notes?</div>
+        <div class="faq-a"><strong>No.</strong> The script never reads or transmits what you type. It only sends a pulse saying: <em>"Employee edited cell B14 at 10:24 AM"</em>. Your client information remains 100% private.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What if I am on a customer call for 30 minutes without typing?</div>
+        <div class="faq-a">The system groups your activity into 10-minute active windows. If you make even 1 note during or after your call, the full block is counted as active productive time.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How do I verify that my work is showing up?</div>
+        <div class="faq-a">Open the Attendance Portal at any time. Look at the <strong>"Sales Spreadsheet Activity"</strong> card on your dashboard. It displays your live verified edits and active hours!</div>
+      </div>
+    </div>
+
+    <div class="callout callout-coral" style="margin-top: 30px;">
+      <strong>Need assistance?</strong> Reach out to your Team Lead or IT Support at <code>support@techviista.net</code>.
+    </div>
+  </div>
+
+</body>
+</html>
