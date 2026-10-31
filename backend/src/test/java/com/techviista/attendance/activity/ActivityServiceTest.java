@@ -197,3 +197,4 @@ class ActivityServiceTest {
         assertThat(summary.isSuspicious()).isTrue();
     }
 }
+

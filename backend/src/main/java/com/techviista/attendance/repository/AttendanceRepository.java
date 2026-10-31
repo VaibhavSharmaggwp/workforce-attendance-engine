@@ -15,6 +15,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     Optional<Attendance> findByEmployeeIdAndWorkDate(UUID employeeId, LocalDate workDate);
     List<Attendance> findByEmployeeIdOrderByWorkDateDesc(UUID employeeId);
     List<Attendance> findByWorkDate(LocalDate workDate);
+    List<Attendance> findByWorkDateAndStatus(LocalDate workDate, com.techviista.attendance.attendance.AttendanceStatus status);
     List<Attendance> findByWorkDateBetweenOrderByWorkDateDesc(LocalDate startDate, LocalDate endDate);
     List<Attendance> findByEmployeeIdAndWorkDateBetweenOrderByWorkDateAsc(UUID employeeId, LocalDate startDate, LocalDate endDate);
 

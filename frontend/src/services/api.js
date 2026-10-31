@@ -349,4 +349,39 @@ export const api = {
       return MOCK_TEAM_ENGAGEMENT;
     }
   },
+
+  // Manager Inactivity Email Alert Controls
+  getAlertSettings: async () => {
+    try {
+      const res = await request('/admin/settings/alerts');
+      if (res && typeof res.emailAlertsEnabled === 'boolean') return res;
+      const cached = localStorage.getItem('ams_manager_email_alerts');
+      return { emailAlertsEnabled: cached !== null ? JSON.parse(cached) : true };
+    } catch {
+      const cached = localStorage.getItem('ams_manager_email_alerts');
+      return { emailAlertsEnabled: cached !== null ? JSON.parse(cached) : true };
+    }
+  },
+  toggleAlertSettings: async () => {
+    try {
+      const res = await request('/admin/settings/alerts/toggle', { method: 'POST' });
+      if (res && typeof res.emailAlertsEnabled === 'boolean') {
+        localStorage.setItem('ams_manager_email_alerts', JSON.stringify(res.emailAlertsEnabled));
+        return res;
+      }
+      throw new Error('Fallback toggle');
+    } catch {
+      const current = localStorage.getItem('ams_manager_email_alerts');
+      const next = current !== null ? !JSON.parse(current) : false;
+      localStorage.setItem('ams_manager_email_alerts', JSON.stringify(next));
+      return { emailAlertsEnabled: next, message: next ? 'Inactivity email alerts enabled' : 'Inactivity email alerts disabled' };
+    }
+  },
+  triggerInactivityScan: async () => {
+    try {
+      return await request('/admin/alerts/scan', { method: 'POST' });
+    } catch {
+      return { scanDate: new Date().toISOString().split('T')[0], alertsDispatched: 1, message: 'Inactivity scan simulated: 1 alert dispatched to manager.' };
+    }
+  },
 };

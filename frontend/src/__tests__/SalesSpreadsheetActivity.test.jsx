@@ -70,4 +70,25 @@ describe('Sales Spreadsheet Activity & Proof-of-Work Verification', () => {
       expect(screen.getAllByText(/85.7% Active/i).length).toBeGreaterThan(0);
     });
   });
+
+  it('renders the Manager Inactivity Email Alerts toggle card and allows turning alerts on and off', async () => {
+    render(
+      <ToastProvider>
+        <TeamAttendancePage />
+      </ToastProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Manager Inactivity Email Alerts/i)).toBeDefined();
+      expect(screen.getByText(/Alerts ON/i)).toBeDefined();
+      expect(screen.getByText(/Test Scan Now/i)).toBeDefined();
+    });
+
+    const toggleBtn = screen.getByRole('button', { name: /Alerts ON/i });
+    fireEvent.click(toggleBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Alerts OFF/i)).toBeDefined();
+    });
+  });
 });

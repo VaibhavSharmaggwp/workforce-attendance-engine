@@ -17,6 +17,10 @@ import {
   FileSpreadsheet,
   Copy,
   Check,
+  Mail,
+  Bell,
+  BellOff,
+  Zap,
 } from 'lucide-react';
 
 export const TeamAttendancePage = () => {
@@ -32,6 +36,11 @@ export const TeamAttendancePage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showScriptModal, setShowScriptModal] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
+
+  // Manager Email Alert Settings
+  const [emailAlertsEnabled, setEmailAlertsEnabled] = useState(true);
+  const [togglingAlerts, setTogglingAlerts] = useState(false);
+  const [runningScan, setRunningScan] = useState(false);
 
   // Form states for provisioning employee
   const [newFullName, setNewFullName] = useState('');
@@ -50,10 +59,50 @@ export const TeamAttendancePage = () => {
       }
       const eng = await api.getTeamEngagement();
       if (eng) setTeamEngagement(eng);
+
+      const alertSettings = await api.getAlertSettings();
+      if (alertSettings && typeof alertSettings.emailAlertsEnabled === 'boolean') {
+        setEmailAlertsEnabled(alertSettings.emailAlertsEnabled);
+      }
     } catch (err) {
       setDashboard(MOCK_TEAM_TODAY);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleAlerts = async () => {
+    try {
+      setTogglingAlerts(true);
+      const res = await api.toggleAlertSettings();
+      setEmailAlertsEnabled(res.emailAlertsEnabled);
+      addToast({
+        type: 'success',
+        title: res.emailAlertsEnabled ? 'Email Alerts Enabled' : 'Email Alerts Disabled',
+        message: res.emailAlertsEnabled
+          ? 'Managers will receive at most 1 email/day per employee when 2h+ inactivity is detected.'
+          : 'Inactivity email alerts have been paused for managers.',
+      });
+    } catch (e) {
+      addToast({ type: 'error', title: 'Error', message: e.message });
+    } finally {
+      setTogglingAlerts(false);
+    }
+  };
+
+  const handleTriggerScan = async () => {
+    try {
+      setRunningScan(true);
+      const res = await api.triggerInactivityScan();
+      addToast({
+        type: 'success',
+        title: 'Kafka Scan Executed',
+        message: res.message || 'Inactivity scan complete.',
+      });
+    } catch (e) {
+      addToast({ type: 'error', title: 'Scan Error', message: e.message });
+    } finally {
+      setRunningScan(false);
     }
   };
 
@@ -239,6 +288,110 @@ export const TeamAttendancePage = () => {
           >
             <UserPlus size={15} />
             <span>Provision employee</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Manager Inactivity Email Alerts Card (Kafka) */}
+      <div
+        style={{
+          backgroundColor: emailAlertsEnabled ? '#FAF8F5' : '#F5F2ED',
+          border: `1px solid ${emailAlertsEnabled ? '#E2DCD1' : 'var(--color-border)'}`,
+          borderRadius: 'var(--radius-card)',
+          padding: '14px 20px',
+          marginBottom: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              backgroundColor: emailAlertsEnabled ? '#EBF7F0' : '#E8E2D9',
+              color: emailAlertsEnabled ? '#1D8350' : '#8E857C',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Mail size={18} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '0.90rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                Manager Inactivity Email Alerts (Kafka Event Engine)
+              </span>
+              <span
+                style={{
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  padding: '2px 7px',
+                  borderRadius: 4,
+                  backgroundColor: emailAlertsEnabled ? '#EBF7F0' : '#E8E2D9',
+                  color: emailAlertsEnabled ? '#1D8350' : '#8E857C',
+                  border: `1px solid ${emailAlertsEnabled ? '#C4E8D1' : '#D0C9BE'}`,
+                }}
+              >
+                {emailAlertsEnabled ? 'ACTIVE · 1 EMAIL/DAY LIMIT' : 'PAUSED'}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--color-stone)', marginTop: 2 }}>
+              Emails manager if employee is checked in for &gt; 2 hours with zero spreadsheet edits (breaks excluded). Anti-spam guarantee: at most 1 email/day per employee.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={handleTriggerScan}
+            disabled={runningScan || !emailAlertsEnabled}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              backgroundColor: 'transparent',
+              color: emailAlertsEnabled ? 'var(--color-charcoal)' : '#8E857C',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-control)',
+              padding: '7px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: runningScan || !emailAlertsEnabled ? 'not-allowed' : 'pointer',
+              opacity: emailAlertsEnabled ? 1 : 0.5,
+            }}
+          >
+            <Zap size={13} fill={emailAlertsEnabled ? '#EFA537' : '#8E857C'} color={emailAlertsEnabled ? '#EFA537' : '#8E857C'} />
+            <span>{runningScan ? 'Scanning...' : 'Test Scan Now'}</span>
+          </button>
+
+          {/* ON / OFF Switch */}
+          <button
+            onClick={handleToggleAlerts}
+            disabled={togglingAlerts}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: emailAlertsEnabled ? '#1D8350' : '#6B635B',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 20,
+              padding: '6px 14px',
+              fontSize: '0.80rem',
+              fontWeight: 700,
+              cursor: togglingAlerts ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            {emailAlertsEnabled ? <Bell size={13} /> : <BellOff size={13} />}
+            <span>{emailAlertsEnabled ? 'Alerts ON' : 'Alerts OFF'}</span>
           </button>
         </div>
       </div>

@@ -11,3 +11,4 @@ CREATE TABLE activity_logs (
 );
 
 CREATE INDEX idx_activity_logs_employee_logged_at ON activity_logs(employee_id, logged_at);
+

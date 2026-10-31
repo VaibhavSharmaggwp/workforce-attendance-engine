@@ -57,3 +57,4 @@ public class ActivityLog {
         this.createdAt = OffsetDateTime.now();
     }
 }
+

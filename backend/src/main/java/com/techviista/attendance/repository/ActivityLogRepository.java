@@ -18,3 +18,4 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID> 
 
     List<ActivityLog> findTop10ByEmployeeIdOrderByLoggedAtDesc(UUID employeeId);
 }
+

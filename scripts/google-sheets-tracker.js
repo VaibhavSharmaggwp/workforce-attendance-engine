@@ -46,3 +46,4 @@ function testConnection() {
   onEdit(null);
   Logger.log("Pulse test sent successfully.");
 }
+

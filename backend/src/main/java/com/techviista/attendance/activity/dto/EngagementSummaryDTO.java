@@ -29,3 +29,4 @@ public class EngagementSummaryDTO {
     private boolean isSuspicious;
     private List<String> recentActivitySnippets;
 }
+

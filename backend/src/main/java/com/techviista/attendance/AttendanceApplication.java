@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableScheduling
 public class AttendanceApplication {
 
     public static void main(String[] args) {
