@@ -186,41 +186,77 @@ export const LoginPage = () => {
                 : 'Sign in with your registered Gmail to record check-in, breaks, and daily attendance.'}
             </p>
 
-            {/* Error Banner */}
+            {/* Error & Authorization Alert Card */}
             {authError && (
               <div
                 className="animate-fade-in"
                 style={{
                   marginTop: 18,
-                  backgroundColor: '#FCECEF',
-                  border: '1px solid #F4BDC5',
-                  borderRadius: 'var(--radius-control)',
-                  padding: '12px 14px',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
+                  backgroundColor: '#FEF2F2',
+                  border: '1.5px solid #FCA5A5',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.08)',
                 }}
               >
-                <AlertCircle size={18} color="#BF3A4C" style={{ flexShrink: 0, marginTop: 2 }} />
-                <div style={{ fontSize: '0.82rem', color: '#8E2030', lineHeight: 1.4 }}>
-                  <div style={{ fontWeight: 600 }}>Notice</div>
-                  {authError}
-                  <div style={{ marginTop: 6 }}>
-                    <button
-                      onClick={() => setAuthError(null)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#BF3A4C',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        padding: 0,
-                        textDecoration: 'underline',
-                        fontSize: '0.78rem',
-                      }}
-                    >
-                      Dismiss
-                    </button>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 6,
+                      backgroundColor: '#FEE2E2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <AlertCircle size={18} color="#DC2626" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#991B1B' }}>
+                      Account Not Linked / Access Denied
+                    </div>
+                    <div style={{ fontSize: '0.80rem', color: '#7F1D1D', marginTop: 3, lineHeight: 1.45 }}>
+                      {typeof authError === 'string' ? authError : authError.message}
+                    </div>
+
+                    <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <a
+                        href="mailto:techviista53@gmail.com?subject=Attendance%20Portal%20Access%20Request"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          backgroundColor: '#DC2626',
+                          color: '#FFFFFF',
+                          padding: '5px 12px',
+                          borderRadius: 6,
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        ✉️ Contact Mayank Verma
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setAuthError(null)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#991B1B',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          padding: 0,
+                        }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

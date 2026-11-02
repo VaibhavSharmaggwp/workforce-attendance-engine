@@ -26,8 +26,12 @@ export const AuthProvider = ({ children }) => {
     const refreshToken = params.get('refreshToken');
     const errorParam = params.get('error');
 
-    if (errorParam === 'account_not_linked') {
-      setAuthError('This Google account isn’t linked to an employee record. Ask your manager to add you or sign in with your work account.');
+    if (errorParam === 'account_not_linked' || errorParam) {
+      const attemptedEmail = params.get('email');
+      const emailDetail = attemptedEmail ? ` (${attemptedEmail})` : '';
+      setAuthError(
+        `Aapka account${emailDetail} company roster mein registered nahi hai (Manager ne aapko abhi add nahi kiya hai). Please ask your manager Mayank Verma (techviista53@gmail.com) to provision your Gmail before signing in.`
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
       return;
     }

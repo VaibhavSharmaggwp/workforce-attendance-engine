@@ -34,8 +34,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
 
         if (employeeOpt.isEmpty()) {
-            // UI Rule: Redirect to "Account Not Linked" frontend page
-            getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/login?error=account_not_linked");
+            // UI Rule: Redirect to "Account Not Linked" frontend page with attempted email
+            String encodedEmail = email != null ? java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) : "";
+            getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/login?error=account_not_linked&email=" + encodedEmail);
             return;
         }
 
