@@ -59,16 +59,10 @@ export const AuthProvider = ({ children }) => {
           setStoredUser(profile);
         })
         .catch(() => {
-          if (import.meta.env.DEV) {
-            const fallback = MOCK_EMPLOYEES[0];
-            setUser(fallback);
-            setStoredUser(fallback);
-          } else {
-            clearTokens();
-            setUser(null);
-            setStoredUser(null);
-            setAuthError('Authentication session failed. Please sign in again.');
-          }
+          clearTokens();
+          setUser(null);
+          setStoredUser(null);
+          setAuthError('Authentication session failed. Please sign in again.');
         });
     }
   }, []);
@@ -96,29 +90,9 @@ export const AuthProvider = ({ children }) => {
         return response.user;
       }
     } catch (err) {
-      if (import.meta.env.DEV) {
-        // Offline fallback for development only
-        const provisioned = getProvisionedTeam();
-        const allAccounts = [
-          ...MOCK_EMPLOYEES,
-          ...provisioned.map(m => ({
-            id: m.employeeId || 'emp-' + m.email,
-            fullName: m.fullName,
-            email: m.email,
-            role: m.role || 'EMPLOYEE',
-            active: true,
-          })),
-        ];
-        const matched = allAccounts.find(e => e.email.toLowerCase() === email.trim().toLowerCase());
-        if (matched) {
-          const dummyToken = 'demo-jwt-token-' + matched.id;
-          setTokens(dummyToken, dummyToken);
-          setToken(dummyToken);
-          setUser(matched);
-          setStoredUser(matched);
-          return matched;
-        }
-      }
+      clearTokens();
+      setUser(null);
+      setStoredUser(null);
       const msg = err.payload?.message || err.message || 'This Google/work account is not linked to an employee record. Ask your manager to add your account.';
       setAuthError(msg);
       throw err;

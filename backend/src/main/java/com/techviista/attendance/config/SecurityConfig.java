@@ -80,6 +80,9 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .clientRegistrationRepository(clientRegistrationRepository())
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(customAuthorizationRequestResolver(clientRegistrationRepository()))
+                        )
                         .successHandler(oAuth2LoginSuccessHandler)
                         .failureHandler((request, response, exception) -> {
                             String errorMsg = exception != null && exception.getMessage() != null
@@ -91,6 +94,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver(
+            ClientRegistrationRepository clientRegistrationRepository) {
+        org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver resolver =
+                new org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository, "/oauth2/authorization");
+        resolver.setAuthorizationRequestCustomizer(customizer ->
+                customizer.additionalParameters(params -> params.put("prompt", "select_account"))
+        );
+        return resolver;
     }
 
     @Bean
