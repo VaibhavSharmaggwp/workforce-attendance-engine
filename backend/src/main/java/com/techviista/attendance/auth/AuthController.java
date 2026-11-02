@@ -19,6 +19,14 @@ public class AuthController {
     private final EmployeeRepository employeeRepository;
     private final JwtService jwtService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
+
+    @GetMapping("/login")
+    public void redirectLogin(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        response.sendRedirect(frontendUrl + "/login");
+    }
+
     @PostMapping("/api/v1/auth/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         if (request.email() == null || request.email().isBlank()) {

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck } from 'lucide-react';
@@ -6,9 +7,7 @@ export const LoginPage = () => {
   const { loginWithCredentials, authError, setAuthError } = useAuth();
   const [selectedRole, setSelectedRole] = useState('MANAGER'); // default to Manager for easy admin access
   const [email, setEmail] = useState('techviista53@gmail.com');
-  const [password, setPassword] = useState('password');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [showDirectLogin, setShowDirectLogin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   const [infoModal, setInfoModal] = useState(null); // 'PRIVACY' | 'HELP' | 'SECURITY' | null
@@ -18,10 +17,8 @@ export const LoginPage = () => {
     setAuthError(null);
     if (role === 'MANAGER') {
       setEmail('techviista53@gmail.com');
-      setPassword('password');
     } else {
       setEmail('');
-      setPassword('');
     }
   };
 
@@ -47,13 +44,13 @@ export const LoginPage = () => {
     if (e && e.preventDefault) e.preventDefault();
     const targetEmail = email.trim();
     if (!targetEmail) {
-      setAuthError('Please enter your Gmail / work email address.');
+      setAuthError('Please enter your registered Gmail address.');
       return;
     }
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      await loginWithCredentials(targetEmail, password || 'password');
+      await loginWithCredentials(targetEmail, 'sso-session');
     } catch (err) {
       // error handled in AuthContext
     } finally {
@@ -230,8 +227,10 @@ export const LoginPage = () => {
             )}
 
             {/* Primary Google Sign-in Button */}
+            {/* Primary Action: Google Single Sign-On Button */}
             <div style={{ marginTop: 22 }}>
               <button
+                type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleRedirecting}
                 style={{
@@ -239,16 +238,16 @@ export const LoginPage = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 10,
+                  gap: 12,
                   backgroundColor: 'var(--color-coral)',
                   color: '#FFFEFC',
                   border: 'none',
                   borderRadius: 'var(--radius-control)',
-                  padding: '12px 18px',
+                  padding: '13px 18px',
                   fontSize: '0.94rem',
                   fontWeight: 600,
                   cursor: isGoogleRedirecting ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(217, 80, 42, 0.25)',
+                  boxShadow: '0 2px 10px rgba(217, 80, 42, 0.28)',
                   transition: 'background 0.15s, transform 0.1s',
                 }}
                 onMouseEnter={(e) => {
@@ -262,133 +261,117 @@ export const LoginPage = () => {
                   <span>Connecting to Google...</span>
                 ) : (
                   <>
-                    <ArrowRight size={17} />
-                    <span>Continue with Google</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#FFFFFF"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FFFFFF"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#FFFFFF"/>
+                    </svg>
+                    <span>
+                      {isManager
+                        ? 'Continue with Google as Manager'
+                        : 'Continue with Google'}
+                    </span>
                   </>
                 )}
               </button>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 8 }}>
-                <span style={{ fontSize: '0.73rem', color: '#8E857C', lineHeight: 1.4 }}>
-                  {isManager
-                    ? 'ⓘ Signs in directly with techviista53@gmail.com once backend is running.'
-                    : 'ⓘ Sign in with the Gmail registered by your manager.'}
-                </span>
+              <div style={{ marginTop: 10, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
+                {isManager
+                  ? 'Sign in using primary manager account: techviista53@gmail.com'
+                  : 'Sign in with the personal or work Gmail provisioned by your manager.'}
               </div>
             </div>
 
-            {/* Direct Email / Password Sign-in Form */}
-            <div style={{ marginTop: 20, borderTop: '1px solid var(--color-border)', paddingTop: 18 }}>
-              <form onSubmit={handleEmailSubmit}>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
-                    {isManager ? 'Manager Gmail Address' : 'Registered Employee Gmail'}
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder={isManager ? 'techviista53@gmail.com' : 'e.g. employee@gmail.com'}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: 'var(--radius-control)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '0.86rem',
-                      color: 'var(--color-charcoal)',
-                      backgroundColor: '#FFFEFC',
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-charcoal)' }}>
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-stone)',
-                        fontSize: '0.74rem',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
-                    >
-                      {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
-                      {showPassword ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: 'var(--radius-control)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '0.86rem',
-                      color: 'var(--color-charcoal)',
-                      backgroundColor: '#FFFEFC',
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, fontSize: '0.78rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-stone)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    Remember me
-                  </label>
-                  <span
-                    onClick={() => setInfoModal('HELP')}
-                    style={{ color: 'var(--color-stone)', cursor: 'pointer' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-stone)')}
-                  >
-                    Need access?
-                  </span>
-                </div>
-
+            {/* Direct Email Access (Offline / Local Dev Mode) */}
+            <div style={{ marginTop: 22, borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
+                  type="button"
+                  onClick={() => setShowDirectLogin(!showDirectLogin)}
                   style={{
-                    width: '100%',
-                    backgroundColor: 'var(--color-charcoal)',
-                    color: '#FFFEFC',
+                    background: 'none',
                     border: 'none',
-                    borderRadius: 'var(--radius-control)',
-                    padding: '10px 14px',
-                    fontSize: '0.86rem',
+                    padding: 0,
+                    fontSize: '0.78rem',
                     fontWeight: 600,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    display: 'flex',
+                    color: showDirectLogin ? 'var(--color-charcoal)' : 'var(--color-stone)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
+                    gap: 6,
                   }}
                 >
-                  <LogIn size={15} />
-                  <span>
-                    {isSubmitting
-                      ? 'Authenticating...'
-                      : isManager
-                      ? 'Sign In as Manager (Mayank Verma)'
-                      : 'Sign In as Employee'}
-                  </span>
+                  <span>{showDirectLogin ? '▾' : '▸'}</span>
+                  <span>Direct Email Access (Offline / Dev Mode)</span>
                 </button>
-              </form>
+                <span
+                  onClick={() => setInfoModal('HELP')}
+                  style={{ color: 'var(--color-stone)', cursor: 'pointer', fontSize: '0.74rem' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-stone)')}
+                >
+                  Need access?
+                </span>
+              </div>
+
+              {showDirectLogin && (
+                <form onSubmit={handleEmailSubmit} style={{ marginTop: 12 }}>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
+                      {isManager ? 'Manager Gmail Address' : 'Registered Employee Gmail'}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder={isManager ? 'techviista53@gmail.com' : 'e.g. employee@gmail.com'}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--radius-control)',
+                        border: '1px solid var(--color-border)',
+                        fontSize: '0.84rem',
+                        color: 'var(--color-charcoal)',
+                        backgroundColor: '#FFFEFC',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ fontSize: '0.70rem', color: '#8E857C', marginBottom: 10, lineHeight: 1.35 }}>
+                    * Direct login verifies that this email address is already provisioned in the roster. No local application password is required.
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    style={{
+                      width: '100%',
+                      backgroundColor: 'var(--color-charcoal)',
+                      color: '#FFFEFC',
+                      border: 'none',
+                      borderRadius: 'var(--radius-control)',
+                      padding: '9px 14px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <LogIn size={14} />
+                    <span>
+                      {isSubmitting
+                        ? 'Verifying...'
+                        : isManager
+                        ? 'Sign In Directly as Manager'
+                        : 'Sign In Directly as Employee'}
+                    </span>
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
