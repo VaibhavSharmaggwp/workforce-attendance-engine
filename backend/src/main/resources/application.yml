@@ -11,15 +11,15 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID:google-oauth-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google-oauth-client-secret}
             scope:
               - email
               - profile
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/ams_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    password: ${SPRING_DATASOURCE_PASSWORD:Vaibhav@007}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
