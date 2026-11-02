@@ -259,6 +259,16 @@ export const YearlyOverviewPage = () => {
     });
   }, [data, selectedYear]);
 
+  // Real, dynamic KPI calculations with zero hardcoded fallbacks
+  const recordedDaysCount = selectedYear < 2026 ? 0 : (data.totalDaysRecorded ?? streakStats.totalDays ?? 0);
+  const completeDaysCount = selectedYear < 2026 ? 0 : (data.completeDays ?? 0);
+  const incompleteDaysCount = selectedYear < 2026 ? 0 : (data.incompleteDays ?? 0);
+  const netWorkHoursText = selectedYear < 2026 ? '0h' : (data.totalNetWorkHours || '0h');
+  const avgNetPerDayText = selectedYear < 2026 ? '—' : (data.averageNetPerDay || '—');
+  const completePercentageText = recordedDaysCount > 0 ? `${Math.round((completeDaysCount / recordedDaysCount) * 100)}% of recorded` : '0% of recorded';
+  const incompleteSubtitleText = incompleteDaysCount > 0 ? `${incompleteDaysCount} missing check-out` : 'no missing check-outs';
+  const avgNetSubtitleText = recordedDaysCount > 0 && data.breakOver1hDays ? `${data.breakOver1hDays} days with break over 1h` : 'No sessions logged';
+
   return (
     <div style={{ padding: '28px 32px 56px', maxWidth: 1280, margin: '0 auto' }}>
       {/* Page Header */}
@@ -381,7 +391,7 @@ export const YearlyOverviewPage = () => {
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Days recorded</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {selectedYear < 2026 ? 0 : (data.totalDaysRecorded || streakStats.totalDays)}
+            {recordedDaysCount}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
             {selectedYear < 2026 ? `Jan – Dec ${selectedYear}` : `Jan – Oct ${selectedYear}`}
@@ -391,27 +401,27 @@ export const YearlyOverviewPage = () => {
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Complete days</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#1D8350', marginTop: 4 }}>
-            {selectedYear < 2026 ? 0 : (data.completeDays || 186)}
+            {completeDaysCount}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
-            {selectedYear < 2026 ? '0% of recorded' : '95% of recorded'}
+            {completePercentageText}
           </div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Incomplete</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#BF3A4C', marginTop: 4 }}>
-            {selectedYear < 2026 ? 0 : (data.incompleteDays || 10)}
+            {incompleteDaysCount}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#BF3A4C', marginTop: 2 }}>
-            {selectedYear < 2026 ? 'no missing check-outs' : 'missing check-out'}
+            {incompleteSubtitleText}
           </div>
         </div>
 
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Net work</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {selectedYear < 2026 ? '0h' : (data.totalNetWorkHours || '1,148h')}
+            {netWorkHoursText}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>complete days only</div>
         </div>
@@ -419,10 +429,10 @@ export const YearlyOverviewPage = () => {
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg net / day</div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4 }}>
-            {selectedYear < 2026 ? '—' : (data.averageNetPerDay || '6h 10m')}
+            {avgNetPerDayText}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#8E857C', marginTop: 2 }}>
-            {selectedYear < 2026 ? 'No sessions logged' : '7 days with break over 1h'}
+            {avgNetSubtitleText}
           </div>
         </div>
       </div>
