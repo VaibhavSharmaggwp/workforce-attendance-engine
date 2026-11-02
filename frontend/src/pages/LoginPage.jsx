@@ -4,22 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { loginWithCredentials, authError, setAuthError, logout } = useAuth();
-  const [selectedRole, setSelectedRole] = useState('MANAGER'); // default to Manager for easy admin access
-  const [email, setEmail] = useState('techviista53@gmail.com');
-  const [showDirectLogin, setShowDirectLogin] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { authError, setAuthError } = useAuth();
+  const [selectedRole, setSelectedRole] = useState('MANAGER');
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   const [infoModal, setInfoModal] = useState(null); // 'PRIVACY' | 'HELP' | 'SECURITY' | null
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
     setAuthError(null);
-    if (role === 'MANAGER') {
-      setEmail('techviista53@gmail.com');
-    } else {
-      setEmail('');
-    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -36,31 +28,8 @@ export const LoginPage = () => {
     } catch {
       setIsGoogleRedirecting(false);
       setAuthError(
-        'Backend server (http://localhost:8080) is not currently running. To use Google Sign-in, please start the Spring Boot backend. In the meantime, use the direct Sign In button below.'
+        'Authentication service is temporarily unavailable. Please ensure the backend is running and try again.'
       );
-    }
-  };
-
-  const handleEmailSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    const targetEmail = email.trim();
-    if (!targetEmail) {
-      setAuthError('Please enter your registered Gmail address.');
-      return;
-    }
-    setIsSubmitting(true);
-    setAuthError(null);
-    try {
-      const loggedUser = await loginWithCredentials(targetEmail, 'sso-session');
-      if (selectedRole === 'MANAGER' && loggedUser && loggedUser.role !== 'MANAGER' && loggedUser.role !== 'ADMIN') {
-        logout();
-        setAuthError(`Access Denied: ${targetEmail} is registered as an Employee. Manager Portal access is strictly restricted to Mayank Verma (CTO / Manager). Please switch to Employee Sign-In.`);
-        return;
-      }
-    } catch (err) {
-      // error handled in AuthContext
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -317,103 +286,11 @@ export const LoginPage = () => {
                   </>
                 )}
               </button>
-              <div style={{ marginTop: 10, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
+              <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
                 {isManager
                   ? 'Sign in using executive account: techviista53@gmail.com'
                   : 'Sign in with the corporate or personal Gmail provisioned by CTO Mayank Verma.'}
               </div>
-            </div>
-
-            {/* Direct Email Access (Offline / Local Dev Mode) */}
-            <div style={{ marginTop: 22, borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowDirectLogin(!showDirectLogin)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    color: showDirectLogin ? 'var(--color-charcoal)' : 'var(--color-stone)',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <span>{showDirectLogin ? '▾' : '▸'}</span>
-                  <span>Direct Email Access (Offline / Dev Mode)</span>
-                </button>
-                <span
-                  onClick={() => setInfoModal('HELP')}
-                  style={{ color: 'var(--color-stone)', cursor: 'pointer', fontSize: '0.74rem' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-stone)')}
-                >
-                  Need access?
-                </span>
-              </div>
-
-              {showDirectLogin && (
-                <form onSubmit={handleEmailSubmit} style={{ marginTop: 12 }}>
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-charcoal)', marginBottom: 4 }}>
-                      {isManager ? 'Manager Gmail Address' : 'Registered Employee Gmail'}
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder={isManager ? 'techviista53@gmail.com' : 'e.g. employee@gmail.com'}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-control)',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '0.84rem',
-                        color: 'var(--color-charcoal)',
-                        backgroundColor: '#FFFEFC',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ fontSize: '0.70rem', color: '#8E857C', marginBottom: 10, lineHeight: 1.35 }}>
-                    * Direct login verifies that this email address is already provisioned in the roster. No local application password is required.
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-charcoal)',
-                      color: '#FFFEFC',
-                      border: 'none',
-                      borderRadius: 'var(--radius-control)',
-                      padding: '9px 14px',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <LogIn size={14} />
-                    <span>
-                      {isSubmitting
-                        ? 'Verifying...'
-                        : isManager
-                        ? 'Sign In Directly as Manager'
-                        : 'Sign In Directly as Employee'}
-                    </span>
-                  </button>
-                </form>
-              )}
             </div>
           </div>
 
