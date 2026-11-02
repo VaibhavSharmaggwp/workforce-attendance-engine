@@ -19,7 +19,7 @@ public class AuthController {
     private final EmployeeRepository employeeRepository;
     private final JwtService jwtService;
 
-    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
     @GetMapping("/login")
