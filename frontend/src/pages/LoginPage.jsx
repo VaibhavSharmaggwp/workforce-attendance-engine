@@ -54,7 +54,7 @@ export const LoginPage = () => {
       const loggedUser = await loginWithCredentials(targetEmail, 'sso-session');
       if (selectedRole === 'MANAGER' && loggedUser && loggedUser.role !== 'MANAGER' && loggedUser.role !== 'ADMIN') {
         logout();
-        setAuthError(`Access Denied: ${targetEmail} is registered as an EMPLOYEE. You do not have manager authority to access the Manager Portal. Please sign in under Employee Sign-In.`);
+        setAuthError(`Access Denied: ${targetEmail} is registered as an Employee. Manager Portal access is strictly restricted to Mayank Verma (CTO / Manager). Please switch to Employee Sign-In.`);
         return;
       }
     } catch (err) {
@@ -181,15 +181,15 @@ export const LoginPage = () => {
             </div>
 
             <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: isManager ? '#D9502A' : '#1D8350', fontWeight: 700 }}>
-              {isManager ? 'Manager Portal' : 'Employee Portal'}
+              {isManager ? 'Executive / Manager Portal' : 'Employee Portal'}
             </div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4, letterSpacing: '-0.02em' }}>
-              {isManager ? 'Welcome, Manager' : 'Welcome back'}
+              {isManager ? 'Manager Sign-In' : 'Employee Sign-In'}
             </h2>
             <p style={{ fontSize: '0.86rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
               {isManager
-                ? 'Sign in as Mayank Verma to manage team attendance, review hours, and register employees.'
-                : 'Sign in with your registered Gmail to record check-in, breaks, and daily attendance.'}
+                ? 'Executive access restricted to Mayank Verma (CTO / Manager) to manage roster, oversee attendance, and provision staff.'
+                : 'Sign in with your authorized corporate Gmail address to log attendance, breaks, and daily activity.'}
             </p>
 
             {/* Error & Authorization Alert Card */}
@@ -222,7 +222,7 @@ export const LoginPage = () => {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#991B1B' }}>
-                      Account Not Linked / Access Denied
+                      Authorization Required
                     </div>
                     <div style={{ fontSize: '0.80rem', color: '#7F1D1D', marginTop: 3, lineHeight: 1.45 }}>
                       {typeof authError === 'string' ? authError : authError.message}
@@ -244,7 +244,7 @@ export const LoginPage = () => {
                           textDecoration: 'none',
                         }}
                       >
-                        ✉️ Contact Mayank Verma
+                        ✉️ Contact Mayank Verma (CTO)
                       </a>
                       <button
                         type="button"
@@ -319,8 +319,8 @@ export const LoginPage = () => {
               </button>
               <div style={{ marginTop: 10, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
                 {isManager
-                  ? 'Sign in using primary manager account: techviista53@gmail.com'
-                  : 'Sign in with the personal or work Gmail provisioned by your manager.'}
+                  ? 'Sign in using executive account: techviista53@gmail.com'
+                  : 'Sign in with the corporate or personal Gmail provisioned by CTO Mayank Verma.'}
               </div>
             </div>
 
