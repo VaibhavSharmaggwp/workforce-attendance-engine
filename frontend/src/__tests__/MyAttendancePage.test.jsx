@@ -59,10 +59,10 @@ describe('MyAttendancePage - Calendar, Records Table & Detail Drawer', () => {
       fireEvent.click(rows[1]);
     });
 
-    // Drawer slides out with shift details and break breakdown
+    // Drawer slides out with shift details and timeline
     await waitFor(() => {
       expect(screen.getByText(/Record Detail/i)).toBeDefined();
-      expect(screen.getByText(/Breaks/i)).toBeDefined();
+      expect(screen.getByText(/Timeline/i)).toBeDefined();
     });
   });
 });

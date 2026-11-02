@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck } from 'lucide-react';
 
 export const LoginPage = () => {
   const { loginWithCredentials, authError, setAuthError } = useAuth();
@@ -11,6 +11,7 @@ export const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
+  const [infoModal, setInfoModal] = useState(null); // 'PRIVACY' | 'HELP' | 'SECURITY' | null
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
@@ -349,7 +350,12 @@ export const LoginPage = () => {
                     />
                     Remember me
                   </label>
-                  <span style={{ color: 'var(--color-stone)', cursor: 'pointer' }}>
+                  <span
+                    onClick={() => setInfoModal('HELP')}
+                    style={{ color: 'var(--color-stone)', cursor: 'pointer' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-stone)')}
+                  >
                     Need access?
                   </span>
                 </div>
@@ -387,10 +393,31 @@ export const LoginPage = () => {
           </div>
 
           <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#9B938B' }}>
-            <span>🔒 Secure company sign-in</span>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <span style={{ cursor: 'pointer' }}>Privacy notice</span>
-              <span style={{ cursor: 'pointer' }}>Need help?</span>
+            <span
+              onClick={() => setInfoModal('SECURITY')}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
+            >
+              🔒 Secure company sign-in
+            </span>
+            <div style={{ display: 'flex', gap: 14 }}>
+              <span
+                onClick={() => setInfoModal('PRIVACY')}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
+              >
+                Privacy notice
+              </span>
+              <span
+                onClick={() => setInfoModal('HELP')}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
+              >
+                Need help?
+              </span>
             </div>
           </div>
         </div>
@@ -507,6 +534,181 @@ export const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Information Modals (Privacy, Help, Security) */}
+      {infoModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(28, 25, 23, 0.55)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setInfoModal(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 14,
+              border: '1px solid var(--color-border)',
+              maxWidth: 540,
+              width: '100%',
+              padding: '28px 30px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.22)',
+              position: 'relative',
+              animation: 'fadeIn 0.15s ease',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    backgroundColor: infoModal === 'PRIVACY' ? '#EBF7F0' : infoModal === 'HELP' ? '#EFF6FF' : '#FEF6EB',
+                    color: infoModal === 'PRIVACY' ? '#1D8350' : infoModal === 'HELP' ? '#2563EB' : '#D9502A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {infoModal === 'PRIVACY' && <ShieldCheck size={22} />}
+                  {infoModal === 'HELP' && <HelpCircle size={22} />}
+                  {infoModal === 'SECURITY' && <Lock size={22} />}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-charcoal)', letterSpacing: '-0.01em' }}>
+                    {infoModal === 'PRIVACY' && 'Privacy & Compliance Notice'}
+                    {infoModal === 'HELP' && 'Attendance Portal Help & Access'}
+                    {infoModal === 'SECURITY' && 'Enterprise Security Standards'}
+                  </h3>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginTop: 2 }}>
+                    Eduqynt Techviista Pvt. Ltd. · Workforce Attendance Engine
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--color-stone)',
+                  padding: 4,
+                  borderRadius: 6,
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ fontSize: '0.84rem', color: '#4A423B', lineHeight: 1.55 }}>
+              {infoModal === 'PRIVACY' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Purpose of Data Collection:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Timestamps (check-in, break start/finish, check-out) are recorded exclusively for work-hour calculation, shift management, and compliance with statutory labour standards.
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>No Invasive Monitoring:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      The system strictly tracks self-recorded time intervals. It does NOT record background screen video, audio, keystrokes, webcam feeds, or personal browser activity.
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Data Ownership & Security:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      All attendance logs remain the confidential property of Eduqynt Techviista Pvt. Ltd. and are encrypted both in transit (TLS 1.3) and at rest.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {infoModal === 'HELP' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ backgroundColor: '#F7F3EE', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Seeing "Account Not Linked"?</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 4, fontSize: '0.80rem' }}>
+                      To protect company data, self-registration is closed. Your manager must provision your Gmail ID in the system before your first sign-in.
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Primary Manager:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Mayank Verma · <a href="mailto:techviista53@gmail.com" style={{ color: '#2563EB', textDecoration: 'none' }}>techviista53@gmail.com</a>
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>IT & Technical Support:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Email: <a href="mailto:support@techviista.com" style={{ color: '#2563EB', textDecoration: 'none' }}>support@techviista.com</a>
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: '#8E857C', marginTop: 2 }}>
+                      Operating Hours: Mon – Fri, 9:00 AM – 6:00 PM IST
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {infoModal === 'SECURITY' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Google OAuth 2.0:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Single sign-on uses industry-standard OAuth 2.0 PKCE protocol. User passwords never traverse our application layer.
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Cryptographic JWT Sessions:</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Sessions use HMAC-SHA256 signed JSON Web Tokens with 15-minute access lifetimes and secure token rotation.
+                    </div>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--color-charcoal)' }}>Role-Based Access Control (RBAC):</strong>
+                    <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
+                      Manager administrative capabilities (team attendance, employee provisioning, audit logs) are strictly protected by server-side spring security method authorization.
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Close Button */}
+            <div style={{ marginTop: 22, display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                style={{
+                  backgroundColor: 'var(--color-charcoal)',
+                  color: '#FFFEFC',
+                  border: 'none',
+                  borderRadius: 'var(--radius-control)',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
