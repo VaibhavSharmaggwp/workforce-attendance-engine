@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { loginWithCredentials, authError, setAuthError } = useAuth();
+  const { loginWithCredentials, authError, setAuthError, logout } = useAuth();
   const [selectedRole, setSelectedRole] = useState('MANAGER'); // default to Manager for easy admin access
   const [email, setEmail] = useState('techviista53@gmail.com');
   const [showDirectLogin, setShowDirectLogin] = useState(false);
@@ -25,11 +25,12 @@ export const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleRedirecting(true);
     setAuthError(null);
+    sessionStorage.setItem('ams_expected_role', selectedRole);
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1200);
-      await fetch(`${backendUrl}/api/v1/auth/health`, { signal: controller.signal, mode: 'no-cors' });
+      await fetch(`${backendUrl}/api/v1/health`, { signal: controller.signal, mode: 'no-cors' });
       clearTimeout(timeoutId);
       window.location.href = `${backendUrl}/oauth2/authorization/google`;
     } catch {
@@ -50,7 +51,12 @@ export const LoginPage = () => {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      await loginWithCredentials(targetEmail, 'sso-session');
+      const loggedUser = await loginWithCredentials(targetEmail, 'sso-session');
+      if (selectedRole === 'MANAGER' && loggedUser && loggedUser.role !== 'MANAGER' && loggedUser.role !== 'ADMIN') {
+        logout();
+        setAuthError(`Access Denied: ${targetEmail} is registered as an EMPLOYEE. You do not have manager authority to access the Manager Portal. Please sign in under Employee Sign-In.`);
+        return;
+      }
     } catch (err) {
       // error handled in AuthContext
     } finally {

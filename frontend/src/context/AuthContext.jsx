@@ -44,6 +44,17 @@ export const AuthProvider = ({ children }) => {
       // Fetch user profile from backend
       api.getMe()
         .then((profile) => {
+          const expectedRole = sessionStorage.getItem('ams_expected_role');
+          sessionStorage.removeItem('ams_expected_role');
+
+          if (expectedRole === 'MANAGER' && profile.role !== 'MANAGER' && profile.role !== 'ADMIN') {
+            clearTokens();
+            setUser(null);
+            setStoredUser(null);
+            setAuthError(`Access Denied: ${profile.email} is registered as an EMPLOYEE. You do not have manager authority to access the Manager Portal. Please sign in under Employee Sign-In.`);
+            return;
+          }
+
           setUser(profile);
           setStoredUser(profile);
         })

@@ -23,8 +23,10 @@ public class AuthController {
     private String frontendUrl;
 
     @GetMapping("/login")
-    public void redirectLogin(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
-        response.sendRedirect(frontendUrl + "/login");
+    public void redirectLogin(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        String qs = request.getQueryString();
+        String target = frontendUrl + "/login" + (qs != null && !qs.isBlank() ? "?" + qs : "");
+        response.sendRedirect(target);
     }
 
     @PostMapping("/api/v1/auth/login")
