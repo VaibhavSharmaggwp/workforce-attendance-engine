@@ -1,18 +1,14 @@
 # Stage 1: Build the Spring Boot Application
-FROM eclipse-temurin:17-jdk-jammy AS build
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
-ENV MAVEN_OPTS="-Dmaven.wagon.http.retryHandler.count=5 -Dmaven.wagon.http.pool=false -Dhttp.keepAlive=false -Dmaven.wagon.http.timeout=60000"
-
-# Copy Maven Wrapper and POM first to cache dependencies
-COPY backend/.mvn/ .mvn/
-COPY backend/mvnw backend/pom.xml ./
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline -B --no-transfer-progress || true
+# Copy POM and download dependencies
+COPY backend/pom.xml ./
+RUN mvn dependency:go-offline -B || true
 
 # Copy source code and package executable JAR
 COPY backend/src/ src/
-RUN ./mvnw package -DskipTests -B --no-transfer-progress
+RUN mvn clean package -DskipTests -B
 
 # Stage 2: Minimal Production JRE Image
 FROM eclipse-temurin:17-jre-jammy
