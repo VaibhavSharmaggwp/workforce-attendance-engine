@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String userEmail = jwtService.extractEmail(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                Employee employee = employeeRepository.findByEmail(userEmail).orElse(null);
+                Employee employee = employeeRepository.findByEmailIgnoreCase(userEmail).orElse(null);
 
                 if(employee != null && jwtService.isTokenValid(jwt, userEmail)){
                     // The user is valid. We assign their role (EMPLOYEE or MANAGER) to Spring Security.
