@@ -58,7 +58,7 @@ jwt:
   refresh-token-expiration: 604800000 # 7 days in milliseconds
 
 app:
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  frontend-url: ${FRONTEND_URL:http://techviista.net/attendance}
   initial-manager:
     email: ${INITIAL_MANAGER_EMAIL:techviista53@gmail.com}
     name: ${INITIAL_MANAGER_NAME:Mayank Verma}
