@@ -75,10 +75,10 @@ public class AuthController {
         return ResponseEntity.ok(list);
     }
 
-    @GetMapping("/api/v1/me")
+    @GetMapping({"/api/v1/me", "/api/v1/auth/me"})
     public ResponseEntity<UserProfileDTO> getCurrentUser(@AuthenticationPrincipal Employee currentEmployee) {
         if (currentEmployee == null) {
-            throw new IllegalArgumentException("Unauthorized");
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
         }
 
         return ResponseEntity.ok(UserProfileDTO.builder()

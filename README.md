@@ -14,7 +14,7 @@
 [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white)](https://kafka.apache.org/)
 [![Vitest](https://img.shields.io/badge/Vitest-16%20Passed-FCC72B?style=for-the-badge&logo=vitest&logoColor=black)](https://vitest.dev/)
-[![JUnit 5](https://img.shields.io/badge/JUnit_5-71%20Passed-25A162?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![JUnit 5](https://img.shields.io/badge/JUnit_5-85%20Passed-25A162?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 </div>
 
@@ -336,11 +336,12 @@ npm run dev
 
 The codebase maintains complete automated test coverage across both backend and frontend layers:
 
-### Backend Suite: 71 Tests Passing (JUnit 5 / MockMvc / Spring Security)
+### Backend Suite: 85 Tests Passing (JUnit 5 / MockMvc / Spring Security)
 ```bash
 cd backend
 .\mvnw.cmd test
 ```
+- `ProductionEndToEndFlowTest` (14 tests): Complete end-to-end user journeys (manager auth, employee provisioning, 4-state shift lifecycle, duplicate conflict enforcement, spreadsheet pulse telemetry, inactivity scanner, yearly analytics, team dashboard).
 - `AttendanceServiceTest` (14 tests): State transitions, duration calculations, break validation, conflict detection.
 - `AttendanceControllerTest` (11 tests): Web layer validation, response envelopes, HTTP status assertions.
 - `ActivityControllerTest` & `ActivityServiceTest` (12 tests): Telemetry ingest, pulse validation, team activity queries.

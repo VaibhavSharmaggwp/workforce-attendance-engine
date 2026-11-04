@@ -1,7 +1,7 @@
 // API Service with JWT authentication, resilient fallback, and seamless demo mode
 import { MOCK_EMPLOYEES, MOCK_HISTORY_RECORDS, MOCK_TEAM_TODAY, MOCK_YEARLY_OVERVIEW, MOCK_ENGAGEMENT_TODAY, MOCK_TEAM_ENGAGEMENT } from './mockData';
 
-const API_BASE = '/api/v1';
+const API_BASE = ((import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_BACKEND_URL || '').replace(/\/+$/, '')) + '/api/v1';
 
 export const getAccessToken = () => localStorage.getItem('ams_access_token');
 export const setTokens = (accessToken, refreshToken) => {

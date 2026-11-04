@@ -18,7 +18,7 @@ export const LoginPage = () => {
     setIsGoogleRedirecting(true);
     setAuthError(null);
     sessionStorage.setItem('ams_expected_role', selectedRole);
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1200);
