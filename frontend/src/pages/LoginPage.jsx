@@ -1,17 +1,45 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, User, LogIn, X, Lock, HelpCircle, ShieldCheck, CheckCircle2, Sparkles } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { authError, setAuthError } = useAuth();
+  const { authError, setAuthError, loginWithCredentials } = useAuth();
   const [selectedRole, setSelectedRole] = useState('MANAGER');
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
+  const [isDirectLoggingIn, setIsDirectLoggingIn] = useState(false);
+  const [inputEmail, setInputEmail] = useState('');
   const [infoModal, setInfoModal] = useState(null); // 'PRIVACY' | 'HELP' | 'SECURITY' | null
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
     setAuthError(null);
+  };
+
+  const handleDirectManagerLogin = async () => {
+    setIsDirectLoggingIn(true);
+    setAuthError(null);
+    try {
+      await loginWithCredentials('techviista53@gmail.com');
+    } catch (err) {
+      // error is handled and set in AuthContext
+    } finally {
+      setIsDirectLoggingIn(false);
+    }
+  };
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    if (!inputEmail.trim()) return;
+    setIsDirectLoggingIn(true);
+    setAuthError(null);
+    try {
+      await loginWithCredentials(inputEmail.trim());
+    } catch (err) {
+      // error is handled and set in AuthContext
+    } finally {
+      setIsDirectLoggingIn(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -65,7 +93,7 @@ export const LoginPage = () => {
             {/* Company Logo */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <img
-                src="/logo.jpg"
+                src="./logo.jpg"
                 alt="Eduqynt Techviista Pvt. Ltd."
                 style={{
                   width: 44,
@@ -237,60 +265,145 @@ export const LoginPage = () => {
               </div>
             )}
 
-            {/* Primary Google Sign-in Button */}
-            {/* Primary Action: Google Single Sign-On Button */}
-            <div style={{ marginTop: 22 }}>
+            {/* Direct & Fast Sign-in Section */}
+            <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {isManager ? (
+                <>
+                  {/* Instant 1-Click Manager Sign-in */}
+                  <button
+                    type="button"
+                    onClick={handleDirectManagerLogin}
+                    disabled={isDirectLoggingIn || isGoogleRedirecting}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 10,
+                      backgroundColor: 'var(--color-coral)',
+                      color: '#FFFEFC',
+                      border: 'none',
+                      borderRadius: 'var(--radius-control)',
+                      padding: '14px 18px',
+                      fontSize: '0.94rem',
+                      fontWeight: 700,
+                      cursor: (isDirectLoggingIn || isGoogleRedirecting) ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 4px 14px rgba(217, 80, 42, 0.32)',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isDirectLoggingIn && !isGoogleRedirecting) e.currentTarget.style.backgroundColor = 'var(--color-coral-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isDirectLoggingIn && !isGoogleRedirecting) e.currentTarget.style.backgroundColor = 'var(--color-coral)';
+                    }}
+                  >
+                    <Shield size={18} />
+                    <span>{isDirectLoggingIn ? 'Authenticating Manager...' : 'Instant Manager Access (Mayank Verma)'}</span>
+                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: '0.74rem', color: '#8E857C', marginTop: -4 }}>
+                    <ShieldCheck size={14} color="#1D8350" />
+                    <span>Executive Account: <strong>techviista53@gmail.com</strong></span>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Direct Email Sign-in for Employee or custom Manager email */}
+              <form onSubmit={handleEmailSubmit} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input
+                  type="email"
+                  placeholder={isManager ? "Or enter registered manager email..." : "Enter your provisioned work email..."}
+                  value={inputEmail}
+                  onChange={(e) => setInputEmail(e.target.value)}
+                  disabled={isDirectLoggingIn || isGoogleRedirecting}
+                  style={{
+                    flex: 1,
+                    padding: '11px 14px',
+                    borderRadius: 8,
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.86rem',
+                    outline: 'none',
+                    backgroundColor: '#FFFFFF',
+                    color: 'var(--color-charcoal)',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={isDirectLoggingIn || isGoogleRedirecting || !inputEmail.trim()}
+                  style={{
+                    padding: '11px 18px',
+                    borderRadius: 8,
+                    border: 'none',
+                    backgroundColor: '#1F1B18',
+                    color: '#FFFFFF',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: (isDirectLoggingIn || isGoogleRedirecting || !inputEmail.trim()) ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    whiteSpace: 'nowrap',
+                    opacity: (!inputEmail.trim() || isDirectLoggingIn) ? 0.7 : 1,
+                  }}
+                >
+                  <LogIn size={15} />
+                  <span>{isDirectLoggingIn ? '...' : 'Sign In'}</span>
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '6px 0' }}>
+                <div style={{ flex: 1, height: 1, backgroundColor: 'var(--color-border)' }} />
+                <span style={{ fontSize: '0.72rem', color: '#A8A29E', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  or continue with
+                </span>
+                <div style={{ flex: 1, height: 1, backgroundColor: 'var(--color-border)' }} />
+              </div>
+
+              {/* Secondary Google Sign-in Button */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                disabled={isGoogleRedirecting}
+                disabled={isGoogleRedirecting || isDirectLoggingIn}
                 style={{
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 12,
-                  backgroundColor: 'var(--color-coral)',
-                  color: '#FFFEFC',
-                  border: 'none',
+                  gap: 10,
+                  backgroundColor: '#FFFFFF',
+                  color: 'var(--color-charcoal)',
+                  border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-control)',
-                  padding: '13px 18px',
-                  fontSize: '0.94rem',
+                  padding: '11px 16px',
+                  fontSize: '0.88rem',
                   fontWeight: 600,
-                  cursor: isGoogleRedirecting ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 10px rgba(217, 80, 42, 0.28)',
-                  transition: 'background 0.15s, transform 0.1s',
+                  cursor: (isGoogleRedirecting || isDirectLoggingIn) ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isGoogleRedirecting) e.currentTarget.style.backgroundColor = 'var(--color-coral-hover)';
+                  if (!isGoogleRedirecting && !isDirectLoggingIn) e.currentTarget.style.backgroundColor = '#F9F8F6';
                 }}
                 onMouseLeave={(e) => {
-                  if (!isGoogleRedirecting) e.currentTarget.style.backgroundColor = 'var(--color-coral)';
+                  if (!isGoogleRedirecting && !isDirectLoggingIn) e.currentTarget.style.backgroundColor = '#FFFFFF';
                 }}
               >
                 {isGoogleRedirecting ? (
                   <span>Connecting to Google...</span>
                 ) : (
                   <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#FFFFFF"/>
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FFFFFF"/>
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#FFFFFF"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                     </svg>
-                    <span>
-                      {isManager
-                        ? 'Continue with Google as Manager'
-                        : 'Continue with Google'}
-                    </span>
+                    <span>Continue with Google</span>
                   </>
                 )}
               </button>
-              <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
-                {isManager
-                  ? 'Sign in using executive account: techviista53@gmail.com'
-                  : 'Sign in with the corporate or personal Gmail provisioned by CTO Mayank Verma.'}
-              </div>
             </div>
           </div>
 
@@ -338,7 +451,7 @@ export const LoginPage = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
               <img
-                src="/logo.jpg"
+                src="./logo.jpg"
                 alt="Eduqynt Techviista"
                 style={{
                   width: 52,

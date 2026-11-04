@@ -25,7 +25,9 @@ public class AuthController {
     @GetMapping("/login")
     public void redirectLogin(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
         String qs = request.getQueryString();
-        String target = frontendUrl + "/login" + (qs != null && !qs.isBlank() ? "?" + qs : "");
+        String cleanBase = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+        String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
+        String target = redirectBase + (qs != null && !qs.isBlank() ? "?" + qs : "");
         response.sendRedirect(target);
     }
 

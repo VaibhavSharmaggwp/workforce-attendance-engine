@@ -30,13 +30,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
+        String cleanBase = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+        String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
+
         // PRD Rule: No unrestricted self-registration. Manager must add employee first.
         Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
 
         if (employeeOpt.isEmpty()) {
             // UI Rule: Redirect to "Account Not Linked" frontend page with attempted email
             String encodedEmail = email != null ? java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) : "";
-            getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/login?error=account_not_linked&email=" + encodedEmail);
+            getRedirectStrategy().sendRedirect(request, response, redirectBase + "?error=account_not_linked&email=" + encodedEmail);
             return;
         }
 
@@ -44,7 +47,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String refreshToken = jwtService.generateRefreshToken(email);
 
         // Redirect to the frontend application, passing the tokens safely
-        String targetUrl = frontendUrl + "/login?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
+        String targetUrl = redirectBase + "?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

@@ -87,7 +87,9 @@ public class SecurityConfig {
                             String errorMsg = exception != null && exception.getMessage() != null
                                     ? exception.getMessage()
                                     : "oauth2_failed";
-                            response.sendRedirect(frontendUrl + "/login?error=" + URLEncoder.encode(errorMsg, StandardCharsets.UTF_8));
+                            String cleanBase = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+                            String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
+                            response.sendRedirect(redirectBase + "?error=" + URLEncoder.encode(errorMsg, StandardCharsets.UTF_8));
                         })
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
