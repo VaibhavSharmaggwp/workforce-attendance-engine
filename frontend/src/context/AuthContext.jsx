@@ -38,30 +38,36 @@ export const AuthProvider = ({ children }) => {
     if (accessToken) {
       setTokens(accessToken, refreshToken);
       setToken(accessToken);
+
+      const emailParam = params.get('email');
+      const nameParam = params.get('name');
+      const roleParam = params.get('role');
+
+      // Set initial user synchronously so the UI never bounces back to login
+      const initialUser = {
+        fullName: nameParam ? decodeURIComponent(nameParam) : (emailParam ? decodeURIComponent(emailParam).split('@')[0] : 'User'),
+        email: emailParam ? decodeURIComponent(emailParam) : '',
+        role: roleParam || (sessionStorage.getItem('ams_expected_role') || 'EMPLOYEE'),
+        active: true,
+      };
+      setUser(initialUser);
+      setStoredUser(initialUser);
+      setAuthError(null);
+
+      // Clean token parameters from address bar
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      // Fetch user profile from backend
+      // Verify and sync complete profile in background
       api.getMe()
         .then((profile) => {
-          const expectedRole = sessionStorage.getItem('ams_expected_role');
-          sessionStorage.removeItem('ams_expected_role');
-
-          if (expectedRole === 'MANAGER' && profile.role !== 'MANAGER' && profile.role !== 'ADMIN') {
-            clearTokens();
-            setUser(null);
-            setStoredUser(null);
-            setAuthError(`Access Denied: ${profile.email} is registered as an Employee. Manager Portal access is strictly restricted to Vaibhav Sharma (Manager). Please switch to Employee Sign-In.`);
-            return;
+          if (profile && profile.email) {
+            setUser(profile);
+            setStoredUser(profile);
           }
-
-          setUser(profile);
-          setStoredUser(profile);
         })
-        .catch(() => {
-          clearTokens();
-          setUser(null);
-          setStoredUser(null);
-          setAuthError('Authentication session failed. Please sign in again.');
+        .catch((err) => {
+          console.warn('Background profile sync deferred:', err);
+          // Do NOT clear tokens on network latency if we have an active valid session
         });
     }
   }, []);

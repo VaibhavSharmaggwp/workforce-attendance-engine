@@ -68,8 +68,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String accessToken = jwtService.generateAccessToken(employee.getEmail());
         String refreshToken = jwtService.generateRefreshToken(employee.getEmail());
 
-        // Redirect to the frontend application, passing the tokens safely
-        String targetUrl = redirectBase + "?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
+        // Redirect to the frontend application, passing the tokens and profile details safely
+        String targetUrl = redirectBase + "?accessToken=" + accessToken
+                + "&refreshToken=" + refreshToken
+                + "&email=" + java.net.URLEncoder.encode(employee.getEmail(), java.nio.charset.StandardCharsets.UTF_8)
+                + "&name=" + java.net.URLEncoder.encode(employee.getFullName(), java.nio.charset.StandardCharsets.UTF_8)
+                + "&role=" + employee.getRole().name();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 

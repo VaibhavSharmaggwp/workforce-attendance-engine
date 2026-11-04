@@ -62,6 +62,24 @@ public class AuthController {
                 .build());
     }
 
+    @PostMapping("/api/v1/auth/refresh")
+    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            String email = jwtService.extractEmail(refreshToken);
+            if (jwtService.isTokenValid(refreshToken, email)) {
+                String newAccessToken = jwtService.generateAccessToken(email);
+                return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+            }
+        } catch (Exception e) {
+            // Invalid refresh token
+        }
+        return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+    }
+
     @GetMapping("/api/v1/auth/demo-accounts")
     public ResponseEntity<List<UserProfileDTO>> getDemoAccounts() {
         List<UserProfileDTO> list = employeeRepository.findAll().stream()

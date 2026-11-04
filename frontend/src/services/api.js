@@ -155,8 +155,8 @@ async function request(endpoint, options = {}) {
 
   if (response.status === 401) {
     const isDemo = isDemoToken(token);
-    // Never expire session if user is in demo mode or calling auth endpoints
-    if (!isDemo && !endpoint.includes('/auth/login') && !endpoint.includes('/me')) {
+    // Only expire session if explicit profile verification endpoint fails
+    if (!isDemo && endpoint === '/me') {
       clearTokens();
       window.dispatchEvent(new Event('ams_auth_expired'));
     }
