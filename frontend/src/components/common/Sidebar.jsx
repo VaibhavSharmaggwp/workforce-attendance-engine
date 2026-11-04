@@ -1,8 +1,8 @@
 import React from 'react';
-import { Clock, Calendar, BarChart2, Users, LogOut } from 'lucide-react';
+import { Clock, Calendar, BarChart2, Users, LogOut, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const Sidebar = ({ activeTab, onSelectTab }) => {
+export const Sidebar = ({ activeTab, onSelectTab, isDrawerOpen, onCloseDrawer }) => {
   const { user, logout } = useAuth();
   const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN';
 
@@ -23,44 +23,63 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  return (
-    <aside
+  const renderContent = (isMobile = false) => (
+    <div
       style={{
-        width: 260,
-        backgroundColor: '#1F1B18',
-        color: '#FFFEFC',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        height: '100%',
         padding: '24px 16px',
-        flexShrink: 0,
-        minHeight: '100vh',
+        backgroundColor: '#1F1B18',
+        color: '#FFFEFC',
       }}
     >
       <div>
         {/* Brand header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 8px 24px', borderBottom: '1px solid #302A25' }}>
-          <img
-            src="/logo.jpg"
-            alt="Eduqynt Techviista"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: '1.5px solid #2563EB',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-              flexShrink: 0,
-            }}
-          />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '0.98rem', letterSpacing: '-0.01em', color: '#FFFEFC' }}>
-              Attendance
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#9B938B', marginTop: -2 }}>
-              Eduqynt Techviista
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px 24px', borderBottom: '1px solid #302A25' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img
+              src="./logo.jpg"
+              alt="Eduqynt Techviista"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1.5px solid #2563EB',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                flexShrink: 0,
+              }}
+            />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.98rem', letterSpacing: '-0.01em', color: '#FFFEFC' }}>
+                Attendance
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#9B938B', marginTop: -2 }}>
+                Eduqynt Techviista
+              </div>
             </div>
           </div>
+
+          {isMobile && (
+            <button
+              onClick={onCloseDrawer}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#9B938B',
+                cursor: 'pointer',
+                padding: 6,
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         {/* Navigation list */}
@@ -71,13 +90,16 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => {
+                  onSelectTab(item.id);
+                  if (isMobile && onCloseDrawer) onCloseDrawer();
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 12,
                   width: '100%',
-                  padding: '10px 14px',
+                  padding: '11px 14px',
                   borderRadius: 8,
                   border: 'none',
                   background: isActive ? '#2E2823' : 'transparent',
@@ -172,7 +194,7 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
               border: 'none',
               color: '#9B938B',
               cursor: 'pointer',
-              padding: 4,
+              padding: 6,
               display: 'flex',
               alignItems: 'center',
               borderRadius: 4,
@@ -184,7 +206,55 @@ export const Sidebar = ({ activeTab, onSelectTab }) => {
           </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside
+        className="desktop-only"
+        style={{
+          width: 260,
+          flexShrink: 0,
+          minHeight: '100vh',
+          backgroundColor: '#1F1B18',
+        }}
+      >
+        {renderContent(false)}
+      </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isDrawerOpen && (
+        <div
+          className="mobile-only"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 12, 10, 0.65)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            zIndex: 1000,
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={onCloseDrawer}
+        >
+          <div
+            style={{
+              width: 280,
+              maxWidth: '85vw',
+              height: '100%',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.4)',
+              animation: 'slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderContent(true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
+
 

@@ -97,10 +97,29 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+  transform: scale(0.985);
+  transition: transform 0.08s ease;
+}
+
 /* Animation utilities */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes pulseGlow {
@@ -116,4 +135,179 @@ select:focus-visible {
 .pulse-dot {
   animation: pulseGlow 2s infinite ease-in-out;
 }
+
+/* Responsive Page Containers */
+.page-container {
+  padding: 28px 32px 56px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.responsive-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.responsive-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.responsive-yearly-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+
+.stat-grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+/* Login Page Styles */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-warm-white);
+  padding: 24px;
+}
+
+.login-card {
+  display: grid;
+  grid-template-columns: minmax(320px, 480px) minmax(320px, 420px);
+  background-color: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(31, 27, 24, 0.09);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  width: 100%;
+  max-width: 960px;
+}
+
+.login-left {
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.login-right {
+  background-color: #1F1B18;
+  color: #FFFEFC;
+  padding: 48px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Mobile & Desktop Display Utilities */
+.desktop-only {
+  display: block;
+}
+
+.desktop-flex {
+  display: flex;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-flex {
+  display: none !important;
+}
+
+/* Tablet Breakpoint (<= 1024px) */
+@media (max-width: 1024px) {
+  .responsive-two-col {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .responsive-calendar-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .responsive-yearly-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Mobile Breakpoint (<= 768px) */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .desktop-flex {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block !important;
+  }
+
+  .mobile-flex {
+    display: flex !important;
+  }
+
+  .page-container {
+    padding: 16px 14px calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .timer-text {
+    font-size: clamp(2.2rem, 8.5vw, 3rem) !important;
+  }
+
+  .stat-grid-responsive {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .login-container {
+    padding: 16px 12px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    align-items: center !important;
+  }
+
+  .login-card {
+    grid-template-columns: 1fr !important;
+    max-width: 440px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 30px rgba(31, 27, 24, 0.08) !important;
+  }
+
+  .login-left {
+    padding: 24px 18px !important;
+  }
+
+  .login-right {
+    display: none !important;
+  }
+
+  /* Compact padding for cards on mobile */
+  .mobile-card-compact {
+    padding: 16px 14px !important;
+  }
+
+  /* Stack actions vertically on mobile */
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .mobile-stack > * {
+    width: 100% !important;
+  }
+}
+
 

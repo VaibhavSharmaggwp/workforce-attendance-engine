@@ -270,7 +270,7 @@ export const YearlyOverviewPage = () => {
   const avgNetSubtitleText = recordedDaysCount > 0 && data.breakOver1hDays ? `${data.breakOver1hDays} days with break over 1h` : 'No sessions logged';
 
   return (
-    <div style={{ padding: '28px 32px 56px', maxWidth: 1280, margin: '0 auto' }}>
+    <div className="page-container">
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -380,13 +380,10 @@ export const YearlyOverviewPage = () => {
 
       {/* KPI Cards (Page 11) */}
       <div
+        className="tabular-numbers stat-grid-responsive"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 14,
-          marginBottom: 28,
+          marginBottom: 24,
         }}
-        className="tabular-numbers"
       >
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 20px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Days recorded</div>
@@ -509,15 +506,8 @@ export const YearlyOverviewPage = () => {
       ) : (
         <>
           {/* Main Row: Monthly Chart (Histogram) and Monthly Table */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.15fr 1fr',
-              gap: 24,
-          marginBottom: 28,
-        }}
-      >
-        {/* Monthly Net Work Hours Histogram */}
+          <div className="responsive-yearly-layout" style={{ marginBottom: 28 }}>
+            {/* Monthly Net Work Hours Histogram */}
         <div
           style={{
             backgroundColor: 'var(--color-surface)',

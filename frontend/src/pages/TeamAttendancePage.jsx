@@ -178,19 +178,19 @@ export const TeamAttendancePage = () => {
   };
 
   return (
-    <div style={{ padding: '28px 32px 56px', maxWidth: 1280, margin: '0 auto' }}>
+    <div className="page-container">
       {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 14 }}>
         <div>
           <h2 style={{ fontSize: '1.38rem', fontWeight: 800, color: 'var(--color-charcoal)', letterSpacing: '-0.02em' }}>
             Team attendance
           </h2>
           <div style={{ fontSize: '0.82rem', color: 'var(--color-stone)', marginTop: 2 }}>
-            Thursday, 22 October 2026 · live as of {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            Live floor status · {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} IST
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', width: 'auto' }}>
           {/* Search box */}
           <div
             style={{
@@ -202,6 +202,7 @@ export const TeamAttendancePage = () => {
               borderRadius: 'var(--radius-control)',
               padding: '7px 12px',
               boxShadow: 'var(--shadow-subtle)',
+              flex: '1 1 180px',
             }}
           >
             <Search size={15} color="var(--color-stone)" />
@@ -374,13 +375,10 @@ export const TeamAttendancePage = () => {
 
       {/* Live Counts Top Cards (PRD UI Page 13) */}
       <div
+        className="tabular-numbers stat-grid-responsive"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 14,
           marginBottom: 26,
         }}
-        className="tabular-numbers"
       >
         {/* Working */}
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 18px', boxShadow: 'var(--shadow-subtle)' }}>

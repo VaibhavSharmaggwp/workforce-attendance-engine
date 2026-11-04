@@ -25,34 +25,13 @@ export const LoginPage = () => {
   const isManager = selectedRole === 'MANAGER';
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'var(--color-warm-white)',
-        padding: '24px',
-      }}
-    >
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(320px, 480px) minmax(320px, 420px)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 16,
-          boxShadow: '0 12px 40px rgba(31, 27, 24, 0.09)',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-          width: '100%',
-          maxWidth: 960,
-        }}
-      >
+    <div className="login-container">
+      <div className="login-card">
         {/* Left: Sign-in Form */}
-        <div style={{ padding: '44px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="login-left">
           <div>
             {/* Company Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
               <img
                 src="./logo.jpg"
                 alt="Eduqynt Techviista Pvt. Ltd."
@@ -67,7 +46,7 @@ export const LoginPage = () => {
                 }}
               />
               <div>
-                <div style={{ fontWeight: 800, fontSize: '0.96rem', color: 'var(--color-charcoal)', letterSpacing: '-0.01em' }}>
+                <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--color-charcoal)', letterSpacing: '-0.01em' }}>
                   Attendance Portal
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)', marginTop: -1 }}>
@@ -83,7 +62,7 @@ export const LoginPage = () => {
                 backgroundColor: '#F3EFE9',
                 borderRadius: 10,
                 padding: 4,
-                marginBottom: 22,
+                marginBottom: 20,
                 border: '1px solid var(--color-border)',
               }}
             >
@@ -96,10 +75,10 @@ export const LoginPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
-                  padding: '9px 12px',
-                  borderRadius: 7,
+                  padding: '10px 12px',
+                  borderRadius: 8,
                   border: 'none',
-                  fontSize: '0.82rem',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                   backgroundColor: isManager ? '#FFFEFC' : 'transparent',
@@ -108,7 +87,7 @@ export const LoginPage = () => {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Shield size={15} color={isManager ? '#D9502A' : '#8E857C'} />
+                <Shield size={16} color={isManager ? '#D9502A' : '#8E857C'} />
                 <span>Manager Sign-In</span>
               </button>
 
@@ -121,10 +100,10 @@ export const LoginPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
-                  padding: '9px 12px',
-                  borderRadius: 7,
+                  padding: '10px 12px',
+                  borderRadius: 8,
                   border: 'none',
-                  fontSize: '0.82rem',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                   backgroundColor: !isManager ? '#FFFEFC' : 'transparent',
@@ -133,18 +112,18 @@ export const LoginPage = () => {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <User size={15} color={!isManager ? '#1D8350' : '#8E857C'} />
+                <User size={16} color={!isManager ? '#1D8350' : '#8E857C'} />
                 <span>Employee Sign-In</span>
               </button>
             </div>
 
-            <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: isManager ? '#D9502A' : '#1D8350', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: isManager ? '#D9502A' : '#1D8350', fontWeight: 700 }}>
               {isManager ? 'Executive / Manager Portal' : 'Employee Portal'}
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4, letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 4, letterSpacing: '-0.02em' }}>
               {isManager ? 'Manager Sign-In' : 'Employee Sign-In'}
             </h2>
-            <p style={{ fontSize: '0.86rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
               {isManager
                 ? 'Executive access restricted to Vaibhav Sharma (Manager) to manage roster, oversee attendance, and provision staff.'
                 : 'Sign in with your authorized corporate Gmail address to log attendance, breaks, and daily activity.'}
@@ -156,11 +135,11 @@ export const LoginPage = () => {
                 className="animate-fade-in"
                 style={{
                   marginTop: 18,
-                  backgroundColor: '#FEF2F2',
-                  border: '1.5px solid #FCA5A5',
+                  backgroundColor: '#FFF5F5',
+                  border: '1.5px solid #FECACA',
                   borderRadius: 12,
                   padding: '14px 16px',
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.08)',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.06)',
                 }}
               >
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -174,32 +153,34 @@ export const LoginPage = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
+                      marginTop: 2,
                     }}
                   >
                     <AlertCircle size={18} color="#DC2626" />
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#991B1B' }}>
                       Authorization Required
                     </div>
-                    <div style={{ fontSize: '0.80rem', color: '#7F1D1D', marginTop: 3, lineHeight: 1.45 }}>
+                    <div style={{ fontSize: '0.80rem', color: '#7F1D1D', marginTop: 3, lineHeight: 1.45, wordBreak: 'break-word' }}>
                       {typeof authError === 'string' ? authError : authError.message}
                     </div>
 
-                    <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       <a
                         href="mailto:vs9736400462@gmail.com?subject=Attendance%20Portal%20Access%20Request"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 5,
+                          gap: 6,
                           backgroundColor: '#DC2626',
                           color: '#FFFFFF',
-                          padding: '5px 12px',
+                          padding: '6px 14px',
                           borderRadius: 6,
-                          fontSize: '0.74rem',
+                          fontSize: '0.76rem',
                           fontWeight: 600,
                           textDecoration: 'none',
+                          boxShadow: '0 2px 6px rgba(220, 38, 38, 0.2)',
                         }}
                       >
                         ✉️ Contact Vaibhav Sharma (Manager)
@@ -211,11 +192,11 @@ export const LoginPage = () => {
                           background: 'none',
                           border: 'none',
                           color: '#991B1B',
-                          fontSize: '0.74rem',
+                          fontSize: '0.76rem',
                           fontWeight: 600,
                           cursor: 'pointer',
                           textDecoration: 'underline',
-                          padding: 0,
+                          padding: '4px 6px',
                         }}
                       >
                         Dismiss
@@ -241,12 +222,13 @@ export const LoginPage = () => {
                   backgroundColor: 'var(--color-coral)',
                   color: '#FFFEFC',
                   border: 'none',
-                  borderRadius: 'var(--radius-control)',
-                  padding: '13px 18px',
+                  borderRadius: 10,
+                  padding: '14px 18px',
+                  minHeight: 48,
                   fontSize: '0.94rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: isGoogleRedirecting ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 10px rgba(217, 80, 42, 0.28)',
+                  boxShadow: '0 3px 12px rgba(217, 80, 42, 0.28)',
                   transition: 'background 0.15s, transform 0.1s',
                 }}
                 onMouseEnter={(e) => {
@@ -260,7 +242,7 @@ export const LoginPage = () => {
                   <span>Connecting to Google...</span>
                 ) : (
                   <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <svg width="19" height="19" viewBox="0 0 24 24">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
                       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#FFFFFF"/>
                       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FFFFFF"/>
@@ -274,7 +256,7 @@ export const LoginPage = () => {
                   </>
                 )}
               </button>
-              <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
+              <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C', lineHeight: 1.4 }}>
                 {isManager
                   ? 'Sign in using executive account: vs9736400462@gmail.com'
                   : 'Sign in with the corporate or personal Gmail provisioned by Manager Vaibhav Sharma.'}
@@ -282,47 +264,50 @@ export const LoginPage = () => {
             </div>
           </div>
 
-          <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#9B938B' }}>
-            <span
-              onClick={() => setInfoModal('SECURITY')}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
-            >
-              🔒 Secure company sign-in
-            </span>
-            <div style={{ display: 'flex', gap: 14 }}>
+          <div>
+            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#9B938B', flexWrap: 'wrap', gap: 10 }}>
               <span
-                onClick={() => setInfoModal('PRIVACY')}
-                style={{ cursor: 'pointer' }}
+                onClick={() => setInfoModal('SECURITY')}
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
               >
-                Privacy notice
+                🔒 Secure company sign-in
               </span>
-              <span
-                onClick={() => setInfoModal('HELP')}
-                style={{ cursor: 'pointer' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
-              >
-                Need help?
-              </span>
+              <div style={{ display: 'flex', gap: 14 }}>
+                <span
+                  onClick={() => setInfoModal('PRIVACY')}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
+                >
+                  Privacy notice
+                </span>
+                <span
+                  onClick={() => setInfoModal('HELP')}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#9B938B')}
+                >
+                  Need help?
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile Company Reassurance Badge */}
+            <div className="mobile-only" style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-stone)' }}>
+                Eduqynt Techviista Pvt. Ltd.
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--color-stone-light)', marginTop: 2 }}>
+                Workforce Attendance Engine · Encrypted & Monitored
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Brand Visual Panel (Page 5) */}
-        <div
-          style={{
-            backgroundColor: '#1F1B18',
-            color: '#FFFEFC',
-            padding: '48px 36px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
+        {/* Right: Brand Visual Panel (Desktop Only) */}
+        <div className="login-right desktop-only">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
               <img

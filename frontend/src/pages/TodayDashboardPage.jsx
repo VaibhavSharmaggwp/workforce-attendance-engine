@@ -363,20 +363,14 @@ function onEdit(e) {
   const breakAllowanceLeft = Math.max(0, breakAllowanceMinutes - currentTotalBreakMins);
 
   return (
-    <div style={{ padding: '28px 32px 48px', maxWidth: 1280, margin: '0 auto' }}>
+    <div className="page-container">
       {/* 2-Column Responsive Layout */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 340px',
-          gap: 24,
-          alignItems: 'start',
-        }}
-      >
+      <div className="responsive-two-col">
         {/* Left Column: Today Panel, Timeline, Recent Days */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
           {/* Main "Today" Card following the 4 States of PRD Page 8 */}
           <div
+            className="mobile-card-compact"
             style={{
               backgroundColor: 'var(--color-surface)',
               borderRadius: 'var(--radius-card)',
@@ -512,7 +506,8 @@ function onEdit(e) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 16,
+                    gap: 12,
+                    flexWrap: 'wrap',
                     fontSize: '0.84rem',
                     color: 'var(--color-stone)',
                     marginBottom: 20,

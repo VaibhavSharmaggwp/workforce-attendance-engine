@@ -145,9 +145,9 @@ export const MyAttendancePage = () => {
   }
 
   return (
-    <div style={{ padding: '28px 32px 56px', maxWidth: 1280, margin: '0 auto' }}>
+    <div className="page-container">
       {/* Header bar: Title & Month navigation + Export CSV */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 14 }}>
         <div>
           <h2 style={{ fontSize: '1.38rem', fontWeight: 800, color: 'var(--color-charcoal)', letterSpacing: '-0.02em' }}>
             My attendance
@@ -157,7 +157,7 @@ export const MyAttendancePage = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* Month selector */}
           <div
             style={{
@@ -214,13 +214,10 @@ export const MyAttendancePage = () => {
 
       {/* 6 Top KPI Summary Cards (PRD UI Page 10) */}
       <div
+        className="tabular-numbers stat-grid-responsive"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 14,
-          marginBottom: 28,
+          marginBottom: 24,
         }}
-        className="tabular-numbers"
       >
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '16px 18px', boxShadow: 'var(--shadow-subtle)' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', fontWeight: 500 }}>Days recorded</div>
@@ -262,14 +259,7 @@ export const MyAttendancePage = () => {
       </div>
 
       {/* Main Grid: Interactive Calm Calendar & Records Table */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(320px, 460px) minmax(0, 1fr)',
-          gap: 24,
-          alignItems: 'start',
-        }}
-      >
+      <div className="responsive-calendar-layout">
         {/* Left: Monthly Calendar (Page 10) */}
         <div
           style={{
