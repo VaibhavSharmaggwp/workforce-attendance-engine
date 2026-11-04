@@ -56,13 +56,17 @@ public class AttendanceService {
         attendanceRepository.save(attendance);
 
         if (kafkaTemplate != null) {
-            AttendanceEvent event = new AttendanceEvent(
-                    employee.getId(),
-                    "CHECK_IN",
-                    attendance.getCheckInAt().toString()
-            );
-            // Send to a topic named "attendance-events"
-            kafkaTemplate.send("attendance-events", event);
+            try {
+                AttendanceEvent event = new AttendanceEvent(
+                        employee.getId(),
+                        "CHECK_IN",
+                        attendance.getCheckInAt().toString()
+                );
+                // Send to a topic named "attendance-events"
+                kafkaTemplate.send("attendance-events", event);
+            } catch (Exception ex) {
+                // Async fallback: Kafka event publishing should never block primary check-in
+            }
         }
 
         return mapToResponse(attendance);
