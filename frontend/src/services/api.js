@@ -1,5 +1,5 @@
 // API Service with JWT authentication, resilient fallback, and seamless demo mode
-import { MOCK_EMPLOYEES, MOCK_HISTORY_RECORDS, MOCK_TEAM_TODAY, MOCK_YEARLY_OVERVIEW, MOCK_ENGAGEMENT_TODAY, MOCK_TEAM_ENGAGEMENT } from './mockData';
+// API Service for Techviista Attendance Management System
 
 const rawBase = (import.meta.env?.VITE_BACKEND_URL || import.meta.env?.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 const cleanBase = rawBase.replace(/\/api\/v1$/, '');
@@ -466,19 +466,19 @@ export const api = {
     try {
       const res = await request('/activity/today');
       if (res && res.employeeName) return res;
-      return MOCK_ENGAGEMENT_TODAY;
+      return null;
     } catch {
-      return MOCK_ENGAGEMENT_TODAY;
+      return null;
     }
   },
   getTeamEngagement: async (date) => {
     try {
       const q = date ? `?date=${date}` : '';
       const res = await request(`/activity/team${q}`);
-      if (res && Array.isArray(res) && res.length > 0) return res;
-      return MOCK_TEAM_ENGAGEMENT;
+      if (res && Array.isArray(res)) return res;
+      return [];
     } catch {
-      return MOCK_TEAM_ENGAGEMENT;
+      return [];
     }
   },
 

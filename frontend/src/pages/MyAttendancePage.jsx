@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/common/StatusBadge';
-import { MOCK_HISTORY_RECORDS } from '../services/mockData';
 import {
   Download,
   ChevronLeft,
@@ -20,7 +19,19 @@ export const MyAttendancePage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState('ALL');
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [selectedMonth, setSelectedMonth] = useState('October 2026');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const selectedYear = selectedDate.getFullYear();
+  const selectedMonthIdx = selectedDate.getMonth();
+  const selectedMonth = selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  const handlePrevMonth = () => {
+    setSelectedDate(new Date(selectedYear, selectedMonthIdx - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(new Date(selectedYear, selectedMonthIdx + 1, 1));
+  };
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -55,34 +66,40 @@ export const MyAttendancePage = () => {
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // KPI Calculations for October 2026 (strictly matching Page 10)
-  const totalDays = records.length;
-  const completeDays = records.filter(r => r.status === 'COMPLETED').length;
-  const incompleteDays = records.filter(r => r.status === 'INCOMPLETE').length;
-  const breakOver1hCount = records.filter(r => r.breakMinutes > 60).length;
+  // Real KPI Calculations for currently selected month
+  const monthRecords = records.filter((r) => {
+    if (!r.workDate) return false;
+    const d = new Date(r.workDate);
+    return d.getFullYear() === selectedYear && d.getMonth() === selectedMonthIdx;
+  });
 
-  const totalNetMins = records.reduce((acc, r) => acc + (r.netWorkMinutes || 0), 0);
-  const totalBreakMins = records.reduce((acc, r) => acc + (r.breakMinutes || 0), 0);
+  const totalDays = monthRecords.length;
+  const completeDays = monthRecords.filter(r => r.status === 'COMPLETED').length;
+  const incompleteDays = monthRecords.filter(r => r.status === 'INCOMPLETE').length;
+  const breakOver1hCount = monthRecords.filter(r => (r.breakMinutes || 0) > 60).length;
+
+  const totalNetMins = monthRecords.reduce((acc, r) => acc + (r.netWorkMinutes || 0), 0);
+  const totalBreakMins = monthRecords.reduce((acc, r) => acc + (r.breakMinutes || 0), 0);
   const avgNetMins = completeDays > 0 ? Math.round(totalNetMins / completeDays) : 0;
 
   // Filter chips logic
-  const filteredRecords = records.filter((rec) => {
+  const filteredRecords = monthRecords.filter((rec) => {
     if (selectedFilter === 'ALL') return true;
-    if (selectedFilter === 'COMPLETE') return rec.status === 'COMPLETED' && rec.breakMinutes <= 60;
+    if (selectedFilter === 'COMPLETE') return rec.status === 'COMPLETED' && (rec.breakMinutes || 0) <= 60;
     if (selectedFilter === 'INCOMPLETE') return rec.status === 'INCOMPLETE';
-    if (selectedFilter === 'BREAK_OVER_1H') return rec.breakMinutes > 60;
+    if (selectedFilter === 'BREAK_OVER_1H') return (rec.breakMinutes || 0) > 60;
     return true;
   });
 
   // CSV Export Functionality
   const handleExportCSV = () => {
     const headers = ['Date', 'Check In', 'Check Out', 'Break (minutes)', 'Net Work (minutes)', 'Status'];
-    const rows = records.map(r => [
+    const rows = monthRecords.map(r => [
       r.workDate,
       r.checkInAt || '',
       r.checkOutAt || '',
-      r.breakMinutes,
-      r.netWorkMinutes,
+      r.breakMinutes || 0,
+      r.netWorkMinutes || 0,
       r.status,
     ]);
 
@@ -98,24 +115,33 @@ export const MyAttendancePage = () => {
     document.body.removeChild(link);
   };
 
-  // Calendar Day Mock Data for October 2026
-  // October 2026 starts on Thursday (day index 3 for Monday-based week)
-  const calendarDays = [];
-  // 3 empty placeholders for Mon, Tue, Wed before Oct 1st
-  for (let i = 0; i < 3; i++) calendarDays.push({ empty: true });
+  // Real dynamic calendar days for selected month & year
+  const daysInMonth = new Date(selectedYear, selectedMonthIdx + 1, 0).getDate();
+  const firstDayOfWeek = (new Date(selectedYear, selectedMonthIdx, 1).getDay() + 6) % 7; // 0=Mon, 6=Sun
 
-  for (let day = 1; day <= 31; day++) {
-    const dateStr = `2026-10-${day < 10 ? '0' : ''}${day}`;
-    const dayOfWeek = (day + 2) % 7; // 0=Mon, 6=Sun
+  const calendarDays = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    calendarDays.push({ empty: true });
+  }
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === selectedYear && today.getMonth() === selectedMonthIdx;
+  const todayDay = isCurrentMonth ? today.getDate() : -1;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const mStr = String(selectedMonthIdx + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const dateStr = `${selectedYear}-${mStr}-${dStr}`;
+    const dayOfWeek = (firstDayOfWeek + day - 1) % 7;
     const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
-    const match = records.find(r => r.workDate === dateStr);
+    const match = monthRecords.find(r => r.workDate === dateStr);
 
     let cellType = 'empty';
     let label = '';
 
-    if (day === 22) {
+    if (day === todayDay) {
       cellType = 'today';
-      label = 'Today';
+      label = match ? formatHoursMinutes(match.netWorkMinutes) : 'Today';
     } else if (match) {
       if (match.status === 'INCOMPLETE') {
         cellType = 'incomplete';
@@ -130,7 +156,10 @@ export const MyAttendancePage = () => {
     } else if (isWeekend) {
       cellType = 'weekend';
       label = '';
-    } else if (day < 22) {
+    } else if (isCurrentMonth && day < todayDay) {
+      cellType = 'no-record';
+      label = '• No record';
+    } else if (!isCurrentMonth && selectedDate < today) {
       cellType = 'no-record';
       label = '• No record';
     }
@@ -171,6 +200,8 @@ export const MyAttendancePage = () => {
             }}
           >
             <button
+              onClick={handlePrevMonth}
+              title="Previous month"
               style={{ padding: '8px 10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-stone)' }}
             >
               <ChevronLeft size={16} />
@@ -180,6 +211,8 @@ export const MyAttendancePage = () => {
               <span>{selectedMonth}</span>
             </div>
             <button
+              onClick={handleNextMonth}
+              title="Next month"
               style={{ padding: '8px 10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-stone)' }}
             >
               <ChevronRight size={16} />

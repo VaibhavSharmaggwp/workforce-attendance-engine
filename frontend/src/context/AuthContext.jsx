@@ -9,7 +9,6 @@ import {
   isDemoToken,
   getProvisionedTeam,
 } from '../services/api';
-import { MOCK_EMPLOYEES } from '../services/mockData';
 
 const AuthContext = createContext(null);
 

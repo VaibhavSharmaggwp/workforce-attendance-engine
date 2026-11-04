@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { DayTimelineWidget } from '../components/common/DayTimelineWidget';
-import { MOCK_HISTORY_RECORDS } from '../services/mockData';
 import {
   LogIn,
   LogOut,
@@ -36,6 +35,7 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [recentRecords, setRecentRecords] = useState([]);
+  const [historyRecords, setHistoryRecords] = useState([]);
 
   // Sales Spreadsheet Activity & Proof of Work state
   const [engagement, setEngagement] = useState(null);
@@ -60,7 +60,11 @@ export const TodayDashboardPage = ({ onNavigateToHistory }) => {
       setEngagement(eng);
       const history = await api.getAttendanceHistory();
       if (Array.isArray(history)) {
+        setHistoryRecords(history);
         setRecentRecords(history.slice(0, 6));
+      } else {
+        setHistoryRecords([]);
+        setRecentRecords([]);
       }
     } catch (err) {
       // 404 means no record today, which is State A (Not checked in)
@@ -1003,7 +1007,9 @@ function onEdit(e) {
                     border: `1px solid ${(engagement?.verificationLevel === 'HIGH') ? '#C4E8D1' : (engagement?.verificationLevel === 'MODERATE') ? '#BFDBFE' : '#F8D9A8'}`,
                   }}
                 >
-                  {engagement?.verificationLevel === 'HIGH' ? 'High Engagement' : engagement?.verificationLevel === 'MODERATE' ? 'Moderate Work' : 'Low / Idle'}
+                  {engagement?.totalEditsCount > 0
+                    ? (engagement?.verificationLevel === 'HIGH' ? 'High Engagement' : engagement?.verificationLevel === 'MODERATE' ? 'Moderate Work' : 'Low Activity')
+                    : 'No Edits Yet'}
                 </span>
               </div>
 
@@ -1012,15 +1018,15 @@ function onEdit(e) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 6 }}>
                   <span style={{ color: 'var(--color-stone)', fontWeight: 500 }}>Active Excel Engagement</span>
                   <span style={{ fontWeight: 700, color: 'var(--color-charcoal)' }} className="tabular-numbers">
-                    {engagement?.engagementPercentage ?? 85.7}%
+                    {engagement?.engagementPercentage || 0}%
                   </span>
                 </div>
                 <div style={{ width: '100%', height: 7, backgroundColor: '#EFECE6', borderRadius: 4, overflow: 'hidden' }}>
                   <div
                     style={{
-                      width: `${Math.min(100, engagement?.engagementPercentage ?? 85.7)}%`,
+                      width: `${Math.min(100, engagement?.engagementPercentage || 0)}%`,
                       height: '100%',
-                      backgroundColor: (engagement?.engagementPercentage ?? 85.7) >= 70 ? '#1D8350' : '#EFA537',
+                      backgroundColor: (engagement?.engagementPercentage || 0) >= 70 ? '#1D8350' : '#EFA537',
                       borderRadius: 4,
                       transition: 'width 0.4s ease',
                     }}
@@ -1045,13 +1051,13 @@ function onEdit(e) {
                 <div>
                   <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Active spreadsheet time</div>
                   <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                    {formatHoursMinutes(engagement?.activeSpreadsheetMinutes ?? 240)}
+                    {formatHoursMinutes(engagement?.activeSpreadsheetMinutes || 0)}
                   </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.70rem', color: 'var(--color-stone)' }}>Total cell edits verified</div>
                   <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D8350', marginTop: 2 }}>
-                    {engagement?.totalEditsCount ?? 68} edits
+                    {engagement?.totalEditsCount || 0} edits
                   </div>
                 </div>
               </div>
@@ -1060,7 +1066,7 @@ function onEdit(e) {
               <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', marginBottom: 16 }}>
                 Active workbook:{' '}
                 <strong style={{ color: 'var(--color-charcoal)' }}>
-                  {engagement?.activeWorkbook || 'Q4_Enterprise_Sales_Pipeline.xlsx'}
+                  {engagement?.activeWorkbook || 'No sheet linked today'}
                 </strong>
               </div>
 
@@ -1120,98 +1126,144 @@ function onEdit(e) {
             </div>
           )}
 
-          {/* Month so far KPI Card with 10-day bar chart (Page 7) */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              border: '1px solid var(--color-border)',
-              padding: '22px 24px',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
-                October so far
-              </h3>
-              <span style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>
-                1–21 Oct
-              </span>
-            </div>
+          {/* Month so far KPI Card with 10-day bar chart (Calculated dynamically from real database history) */}
+          {(() => {
+            const currentYear = currentTime.getFullYear();
+            const currentMonthIdx = currentTime.getMonth();
+            const currentMonthName = currentTime.toLocaleDateString('en-GB', { month: 'long' });
+            const currentMonthShort = currentTime.toLocaleDateString('en-GB', { month: 'short' });
+            const currentDay = currentTime.getDate();
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }} className="tabular-numbers">
-              <div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Days recorded</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                  14
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg net / day</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                  6h 19m
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Net work</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                  82h 10m
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg break</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
-                  54m
-                </div>
-              </div>
-            </div>
+            const monthRecords = historyRecords.filter((rec) => {
+              if (!rec.workDate) return false;
+              const d = new Date(rec.workDate);
+              return d.getFullYear() === currentYear && d.getMonth() === currentMonthIdx;
+            });
 
-            {/* 10-day mini bar chart as pictured in Page 7 */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)', marginBottom: 8 }}>
-                Net work · last 10 recorded days
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 46 }}>
-                {[6.2, 6.1, 6.4, 6.1, 6.2, 0, 6.3, 6.2, 6.4, 6.3].map((val, idx) => (
+            const monthDaysRecorded = monthRecords.length;
+            const monthTotalNetMins = monthRecords.reduce((acc, r) => acc + (r.netWorkMinutes || 0), 0);
+            const monthTotalBreakMins = monthRecords.reduce((acc, r) => acc + (r.breakMinutes || 0), 0);
+            const monthAvgNetMins = monthDaysRecorded > 0 ? Math.round(monthTotalNetMins / monthDaysRecorded) : 0;
+            const monthAvgBreakMins = monthDaysRecorded > 0 ? Math.round(monthTotalBreakMins / monthDaysRecorded) : 0;
+
+            const last10Days = [...historyRecords]
+              .sort((a, b) => new Date(a.workDate) - new Date(b.workDate))
+              .slice(-10);
+
+            const todayStr = currentTime.toISOString().split('T')[0];
+            const incompleteMonthRecords = monthRecords.filter(
+              (r) => r.status === 'INCOMPLETE' || (!r.checkOutAt && r.workDate !== todayStr)
+            );
+
+            return (
+              <div
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  borderRadius: 'var(--radius-card)',
+                  border: '1px solid var(--color-border)',
+                  padding: '22px 24px',
+                  boxShadow: 'var(--shadow-card)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <h3 style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                    {currentMonthName} so far
+                  </h3>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>
+                    1–{currentDay} {currentMonthShort}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }} className="tabular-numbers">
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Days recorded</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                      {monthDaysRecorded}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg net / day</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                      {monthDaysRecorded > 0 ? formatHoursMinutes(monthAvgNetMins) : '—'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Net work</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                      {monthTotalNetMins > 0 ? formatHoursMinutes(monthTotalNetMins) : '0m'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)' }}>Avg break</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-charcoal)', marginTop: 2 }}>
+                      {monthDaysRecorded > 0 ? formatHoursMinutes(monthAvgBreakMins) : '0m'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 10-day mini bar chart */}
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-stone)', marginBottom: 8 }}>
+                    Net work · last 10 recorded days
+                  </div>
+                  {last10Days.length > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 46 }}>
+                      {last10Days.map((rec, idx) => {
+                        const netHours = Math.round(((rec.netWorkMinutes || 0) / 60) * 10) / 10;
+                        const isIncomplete = rec.status === 'INCOMPLETE' || (!rec.checkOutAt && rec.workDate !== todayStr);
+                        const dateLabel = new Date(rec.workDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                        return (
+                          <div
+                            key={rec.id || idx}
+                            title={`${dateLabel}: ${isIncomplete ? 'Incomplete day' : `${netHours}h`}`}
+                            style={{
+                              flex: 1,
+                              height: isIncomplete ? 8 : `${Math.min(100, Math.max(10, (netHours / 8) * 100))}%`,
+                              backgroundColor: isIncomplete ? '#BF3A4C' : '#1D8350',
+                              borderRadius: 2,
+                              minHeight: 4,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-stone)', padding: '10px 0', textAlign: 'center', backgroundColor: '#FBF9F6', borderRadius: 6 }}>
+                      No sessions recorded yet this month.
+                    </div>
+                  )}
+                </div>
+
+                {/* Incomplete Day Callout Banner (only if real incomplete records exist) */}
+                {incompleteMonthRecords.length > 0 && (
                   <div
-                    key={idx}
-                    title={val === 0 ? 'Incomplete day' : `${val}h`}
                     style={{
-                      flex: 1,
-                      height: val === 0 ? 8 : `${(val / 7.5) * 100}%`,
-                      backgroundColor: val === 0 ? '#BF3A4C' : '#1D8350',
-                      borderRadius: 2,
+                      backgroundColor: '#FCECEF',
+                      border: '1px solid #F4BDC5',
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      fontSize: '0.76rem',
+                      color: '#8E2030',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                     }}
-                  />
-                ))}
+                  >
+                    <AlertTriangle size={15} color="#BF3A4C" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong>{incompleteMonthRecords.length} incomplete day{incompleteMonthRecords.length > 1 ? 's' : ''}:</strong>{' '}
+                      {new Date(incompleteMonthRecords[0].workDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} has no check-out.{' '}
+                      <span onClick={onNavigateToHistory} style={{ textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>
+                        Review
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* Incomplete Day Callout Banner */}
-            <div
-              style={{
-                backgroundColor: '#FCECEF',
-                border: '1px solid #F4BDC5',
-                borderRadius: 8,
-                padding: '10px 12px',
-                fontSize: '0.76rem',
-                color: '#8E2030',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <AlertTriangle size={15} color="#BF3A4C" style={{ flexShrink: 0 }} />
-              <div>
-                <strong>1 incomplete day:</strong> Wed 14 Oct has no check-out.{' '}
-                <span onClick={onNavigateToHistory} style={{ textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>
-                  Review
-                </span>
-              </div>
-            </div>
+            );
+          })()}
           </div>
         </div>
-      </div>
 
       {/* Confirmation Dialog on Check-out (PRD UI Page 14) */}
       {showCheckOutConfirm && (

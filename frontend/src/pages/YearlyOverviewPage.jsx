@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { api } from '../services/api';
-import { MOCK_YEARLY_OVERVIEW } from '../services/mockData';
 import { BarChart2, Calendar, ChevronDown, CheckCircle2, AlertTriangle, Clock, Flame, Award, X } from 'lucide-react';
 
 const EMPTY_YEARLY = {
