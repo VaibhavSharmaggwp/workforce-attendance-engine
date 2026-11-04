@@ -37,7 +37,7 @@ public class AuthController {
             throw new IllegalArgumentException("Email is required for authentication.");
         }
 
-        Employee employee = employeeRepository.findByEmail(request.email().trim().toLowerCase())
+        Employee employee = employeeRepository.findByEmailIgnoreCase(request.email().trim().toLowerCase())
                 .orElseThrow(() -> new IllegalArgumentException("This Google/work account is not linked to an employee record. Ask your manager to add your account."));
 
         if (!employee.isActive()) {

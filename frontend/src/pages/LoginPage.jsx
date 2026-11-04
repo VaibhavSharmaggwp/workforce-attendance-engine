@@ -146,7 +146,7 @@ export const LoginPage = () => {
             </h2>
             <p style={{ fontSize: '0.86rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
               {isManager
-                ? 'Executive access restricted to Mayank Verma (CTO / Manager) to manage roster, oversee attendance, and provision staff.'
+                ? 'Executive access restricted to Vaibhav Sharma (Manager) to manage roster, oversee attendance, and provision staff.'
                 : 'Sign in with your authorized corporate Gmail address to log attendance, breaks, and daily activity.'}
             </p>
 
@@ -188,7 +188,7 @@ export const LoginPage = () => {
 
                     <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       <a
-                        href="mailto:techviista53@gmail.com?subject=Attendance%20Portal%20Access%20Request"
+                        href="mailto:vs9736400462@gmail.com?subject=Attendance%20Portal%20Access%20Request"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -202,7 +202,7 @@ export const LoginPage = () => {
                           textDecoration: 'none',
                         }}
                       >
-                        ✉️ Contact Mayank Verma (CTO)
+                        ✉️ Contact Vaibhav Sharma (Manager)
                       </a>
                       <button
                         type="button"
@@ -276,8 +276,8 @@ export const LoginPage = () => {
               </button>
               <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C' }}>
                 {isManager
-                  ? 'Sign in using executive account: techviista53@gmail.com'
-                  : 'Sign in with the corporate or personal Gmail provisioned by CTO Mayank Verma.'}
+                  ? 'Sign in using executive account: vs9736400462@gmail.com'
+                  : 'Sign in with the corporate or personal Gmail provisioned by Manager Vaibhav Sharma.'}
               </div>
             </div>
           </div>
@@ -538,7 +538,7 @@ export const LoginPage = () => {
                   <div>
                     <strong style={{ color: 'var(--color-charcoal)' }}>Primary Manager:</strong>
                     <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
-                      Mayank Verma · <a href="mailto:techviista53@gmail.com" style={{ color: '#2563EB', textDecoration: 'none' }}>techviista53@gmail.com</a>
+                      Vaibhav Sharma · <a href="mailto:vs9736400462@gmail.com" style={{ color: '#2563EB', textDecoration: 'none' }}>vs9736400462@gmail.com</a>
                     </div>
                   </div>
                   <div>

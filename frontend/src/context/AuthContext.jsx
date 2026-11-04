@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       const attemptedEmail = params.get('email');
       const emailDetail = attemptedEmail ? ` (${attemptedEmail})` : '';
       setAuthError(
-        `Access Restricted: Your account${emailDetail} is not registered in the organization directory. Only Mayank Verma (CTO / Manager) can provision and authorize employee accounts. Please contact Mayank Verma at techviista53@gmail.com to request access.`
+        `Access Restricted: Your account${emailDetail} is not registered in the organization directory. Only Vaibhav Sharma (Manager) can provision and authorize employee accounts. Please contact Vaibhav Sharma at vs9736400462@gmail.com to request access.`
       );
       window.history.replaceState({}, document.title, window.location.pathname);
       return;
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
             clearTokens();
             setUser(null);
             setStoredUser(null);
-            setAuthError(`Access Denied: ${profile.email} is registered as an Employee. Manager Portal access is strictly restricted to Mayank Verma (CTO / Manager). Please switch to Employee Sign-In.`);
+            setAuthError(`Access Denied: ${profile.email} is registered as an Employee. Manager Portal access is strictly restricted to Vaibhav Sharma (Manager). Please switch to Employee Sign-In.`);
             return;
           }
 

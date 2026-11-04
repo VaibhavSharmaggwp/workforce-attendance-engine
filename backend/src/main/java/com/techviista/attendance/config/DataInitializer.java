@@ -27,28 +27,37 @@ public class DataInitializer implements CommandLineRunner {
     private final AttendanceRepository attendanceRepository;
     private final BreakSessionRepository breakSessionRepository;
 
-    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.email:techviista53@gmail.com}")
+    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.email:vs9736400462@gmail.com}")
     private String initialManagerEmail;
 
-    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.name:Mayank Verma}")
+    @org.springframework.beans.factory.annotation.Value("${app.initial-manager.name:Vaibhav Sharma}")
     private String initialManagerName;
 
     @Override
     public void run(String... args) {
-        // Always ensure the configured primary manager exists
+        // Ensure both Vaibhav Sharma and Mayank Verma exist as authorized managers
+        seedManagerIfMissing("vs9736400462@gmail.com", "Vaibhav Sharma");
+        seedManagerIfMissing("techviista53@gmail.com", "Mayank Verma");
         if (initialManagerEmail != null && !initialManagerEmail.isBlank()) {
-            if (employeeRepository.findByEmail(initialManagerEmail).isEmpty()) {
+            seedManagerIfMissing(initialManagerEmail, initialManagerName);
+        }
+
+        log.info("Data initialization check completed. Authorized managers verified.");
+    }
+
+    private void seedManagerIfMissing(String email, String name) {
+        if (email != null && !email.isBlank()) {
+            String cleanEmail = email.trim().toLowerCase();
+            if (employeeRepository.findByEmailIgnoreCase(cleanEmail).isEmpty()) {
                 employeeRepository.save(Employee.builder()
-                        .fullName(initialManagerName)
-                        .email(initialManagerEmail)
+                        .fullName(name)
+                        .email(cleanEmail)
                         .role(EmployeeRole.MANAGER)
                         .isActive(true)
                         .build());
-                log.info("Provisioned initial manager account: {} <{}>", initialManagerName, initialManagerEmail);
+                log.info("Provisioned authorized manager account: {} <{}>", name, cleanEmail);
             }
         }
-
-        log.info("Data initialization check completed. Zero mock employees seeded.");
     }
 }
 
