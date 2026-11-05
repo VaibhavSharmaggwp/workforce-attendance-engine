@@ -39,7 +39,15 @@ export const PROVISIONED_TEAM_KEY = 'ams_provisioned_team';
 export const getProvisionedTeam = () => {
   try {
     const raw = localStorage.getItem(PROVISIONED_TEAM_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        return list.filter(m => {
+          const email = m.email?.toLowerCase();
+          return email && email !== 'vs9736400462@gmail.com' && email !== 'austindunhamm@gmail.com';
+        });
+      }
+    }
     return [];
   } catch {
     return [];

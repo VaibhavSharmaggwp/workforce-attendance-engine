@@ -24,10 +24,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
-    @Value("${app.initial-manager.email:vs9736400462@gmail.com}")
+    @Value("${app.initial-manager.email:techviista53@gmail.com}")
     private String initialManagerEmail;
 
-    @Value("${app.initial-manager.name:Vaibhav Sharma}")
+    @Value("${app.initial-manager.name:Mayank Verma}")
     private String initialManagerName;
 
     @Override
@@ -81,7 +81,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         if (email == null || email.isBlank()) return false;
         String clean = email.trim().toLowerCase();
         return clean.equalsIgnoreCase(initialManagerEmail)
-                || clean.equals("vs9736400462@gmail.com")
                 || clean.equals("techviista53@gmail.com");
     }
 }

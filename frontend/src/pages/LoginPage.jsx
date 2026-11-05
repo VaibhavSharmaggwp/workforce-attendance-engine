@@ -125,7 +125,7 @@ export const LoginPage = () => {
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-stone)', marginTop: 6, lineHeight: 1.45 }}>
               {isManager
-                ? 'Executive access restricted to Vaibhav Sharma (Manager) to manage roster, oversee attendance, and provision staff.'
+                ? 'Executive access for Manager (Mayank Verma) to oversee attendance, shifts, and team roster.'
                 : 'Sign in with your authorized corporate Gmail address to log attendance, breaks, and daily activity.'}
             </p>
 
@@ -134,75 +134,73 @@ export const LoginPage = () => {
               <div
                 className="animate-fade-in"
                 style={{
-                  marginTop: 18,
+                  marginTop: 14,
                   backgroundColor: '#FFF5F5',
-                  border: '1.5px solid #FECACA',
-                  borderRadius: 12,
-                  padding: '14px 16px',
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.06)',
+                  border: '1px solid #FECACA',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.05)',
                 }}
               >
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 24,
+                      height: 24,
                       borderRadius: 6,
                       backgroundColor: '#FEE2E2',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      marginTop: 2,
                     }}
                   >
-                    <AlertCircle size={18} color="#DC2626" />
+                    <AlertCircle size={15} color="#DC2626" />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#991B1B' }}>
-                      Authorization Required
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#991B1B' }}>
+                      Access Restricted
                     </div>
-                    <div style={{ fontSize: '0.80rem', color: '#7F1D1D', marginTop: 3, lineHeight: 1.45, wordBreak: 'break-word' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#7F1D1D', marginTop: 2, lineHeight: 1.4, wordBreak: 'break-word' }}>
                       {typeof authError === 'string' ? authError : authError.message}
                     </div>
-
-                    <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <a
-                        href="mailto:vs9736400462@gmail.com?subject=Attendance%20Portal%20Access%20Request"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          backgroundColor: '#DC2626',
-                          color: '#FFFFFF',
-                          padding: '6px 14px',
-                          borderRadius: 6,
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          textDecoration: 'none',
-                          boxShadow: '0 2px 6px rgba(220, 38, 38, 0.2)',
-                        }}
-                      >
-                        ✉️ Contact Vaibhav Sharma (Manager)
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setAuthError(null)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#991B1B',
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                          padding: '4px 6px',
-                        }}
-                      >
-                        Dismiss
-                      </button>
-                    </div>
                   </div>
+                </div>
+
+                <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <a
+                    href="mailto:techviista53@gmail.com?subject=Attendance%20Portal%20Access%20Request"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      backgroundColor: '#DC2626',
+                      color: '#FFFFFF',
+                      padding: '5px 12px',
+                      borderRadius: 6,
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    ✉️ Contact Manager (Mayank Verma)
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setAuthError(null)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#991B1B',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      padding: '3px 6px',
+                    }}
+                  >
+                    Dismiss
+                  </button>
                 </div>
               </div>
             )}
@@ -258,8 +256,8 @@ export const LoginPage = () => {
               </button>
               <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.74rem', color: '#8E857C', lineHeight: 1.4 }}>
                 {isManager
-                  ? 'Sign in using executive account: vs9736400462@gmail.com'
-                  : 'Sign in with the corporate or personal Gmail provisioned by Manager Vaibhav Sharma.'}
+                  ? 'Sign in using manager account: techviista53@gmail.com'
+                  : 'Sign in with the corporate or personal Gmail provisioned by Manager Mayank Verma.'}
               </div>
             </div>
           </div>
@@ -523,7 +521,7 @@ export const LoginPage = () => {
                   <div>
                     <strong style={{ color: 'var(--color-charcoal)' }}>Primary Manager:</strong>
                     <div style={{ color: 'var(--color-stone)', marginTop: 2 }}>
-                      Vaibhav Sharma · <a href="mailto:vs9736400462@gmail.com" style={{ color: '#2563EB', textDecoration: 'none' }}>vs9736400462@gmail.com</a>
+                      Mayank Verma · <a href="mailto:techviista53@gmail.com" style={{ color: '#2563EB', textDecoration: 'none' }}>techviista53@gmail.com</a>
                     </div>
                   </div>
                   <div>

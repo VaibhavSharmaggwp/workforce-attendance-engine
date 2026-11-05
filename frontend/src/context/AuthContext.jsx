@@ -27,9 +27,9 @@ export const AuthProvider = ({ children }) => {
 
     if (errorParam === 'account_not_linked' || errorParam) {
       const attemptedEmail = params.get('email');
-      const emailDetail = attemptedEmail ? ` (${attemptedEmail})` : '';
+      const emailDetail = attemptedEmail ? ` (${decodeURIComponent(attemptedEmail)})` : '';
       setAuthError(
-        `Access Restricted: Your account${emailDetail} is not registered in the organization directory. Only Vaibhav Sharma (Manager) can provision and authorize employee accounts. Please contact Vaibhav Sharma at vs9736400462@gmail.com to request access.`
+        `Account not registered${emailDetail}. Please contact Manager (Mayank Verma) to request access.`
       );
       window.history.replaceState({}, document.title, window.location.pathname);
       return;
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       clearTokens();
       setUser(null);
       setStoredUser(null);
-      const msg = err.payload?.message || err.message || 'This Google/work account is not linked to an employee record. Ask your manager to add your account.';
+      const msg = err.payload?.message || err.message || 'Account not registered. Please contact Manager (Mayank Verma) to request access.';
       setAuthError(msg);
       throw err;
     } finally {
