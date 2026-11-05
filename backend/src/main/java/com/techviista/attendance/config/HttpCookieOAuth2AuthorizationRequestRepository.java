@@ -32,8 +32,14 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
 
         String redirectUriAfterLogin = request.getParameter(REDIRECT_URI_PARAM_COOKIE_NAME);
         if (redirectUriAfterLogin != null && !redirectUriAfterLogin.isBlank()) {
-            CookieUtils.addCookie(response, REDIRECT_URI_PARAM_COOKIE_NAME, redirectUriAfterLogin, COOKIE_EXPIRE_SECONDS);
+            String encoded = java.net.URLEncoder.encode(redirectUriAfterLogin, java.nio.charset.StandardCharsets.UTF_8);
+            CookieUtils.addCookie(response, REDIRECT_URI_PARAM_COOKIE_NAME, encoded, COOKIE_EXPIRE_SECONDS);
         }
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request) {
+        return this.loadAuthorizationRequest(request);
     }
 
     @Override
@@ -48,3 +54,4 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME);
     }
 }
+

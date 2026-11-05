@@ -37,6 +37,13 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         // Read originating redirect URI from cookie if present
         String redirectUriFromCookie = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
                 .map(jakarta.servlet.http.Cookie::getValue)
+                .map(val -> {
+                    try {
+                        return java.net.URLDecoder.decode(val, java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        return val;
+                    }
+                })
                 .orElse(null);
 
         // Always clean up authorization cookies on success

@@ -5,28 +5,40 @@ const rawBase = (import.meta.env?.VITE_BACKEND_URL || import.meta.env?.VITE_API_
 const cleanBase = rawBase.replace(/\/api\/v1$/, '');
 const API_BASE = (cleanBase ? cleanBase : '') + '/api/v1';
 
-export const getAccessToken = () => localStorage.getItem('ams_access_token');
+export const getAccessToken = () => {
+  try {
+    return localStorage.getItem('ams_access_token');
+  } catch {
+    return null;
+  }
+};
 export const setTokens = (accessToken, refreshToken) => {
-  if (accessToken) localStorage.setItem('ams_access_token', accessToken);
-  if (refreshToken) localStorage.setItem('ams_refresh_token', refreshToken);
+  try {
+    if (accessToken) localStorage.setItem('ams_access_token', accessToken);
+    if (refreshToken) localStorage.setItem('ams_refresh_token', refreshToken);
+  } catch {}
 };
 export const clearTokens = () => {
-  localStorage.removeItem('ams_access_token');
-  localStorage.removeItem('ams_refresh_token');
-  localStorage.removeItem('ams_user');
+  try {
+    localStorage.removeItem('ams_access_token');
+    localStorage.removeItem('ams_refresh_token');
+    localStorage.removeItem('ams_user');
+  } catch {}
 };
 
 export const getStoredUser = () => {
   try {
     const raw = localStorage.getItem('ams_user');
     return raw ? JSON.parse(raw) : null;
-  } catch (e) {
+  } catch {
     return null;
   }
 };
 
 export const setStoredUser = (user) => {
-  if (user) localStorage.setItem('ams_user', JSON.stringify(user));
+  try {
+    if (user) localStorage.setItem('ams_user', JSON.stringify(user));
+  } catch {}
 };
 
 export const isDemoToken = (token) => {

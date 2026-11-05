@@ -92,6 +92,13 @@ public class SecurityConfig {
                                     : "oauth2_failed";
                             String targetBase = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
                                     .map(jakarta.servlet.http.Cookie::getValue)
+                                    .map(val -> {
+                                        try {
+                                            return java.net.URLDecoder.decode(val, java.nio.charset.StandardCharsets.UTF_8);
+                                        } catch (Exception e) {
+                                            return val;
+                                        }
+                                    })
                                     .orElse(frontendUrl);
                             String cleanBase = targetBase != null ? targetBase.replaceAll("/+$", "") : "";
                             String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
