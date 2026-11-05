@@ -1,3 +1,4 @@
+
 package com.techviista.attendance.config;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +36,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
             String encoded = java.net.URLEncoder.encode(redirectUriAfterLogin, java.nio.charset.StandardCharsets.UTF_8);
             CookieUtils.addCookie(response, REDIRECT_URI_PARAM_COOKIE_NAME, encoded, COOKIE_EXPIRE_SECONDS);
         }
-    }
-
-    @Override
-    public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request) {
-        return this.loadAuthorizationRequest(request);
     }
 
     @Override
