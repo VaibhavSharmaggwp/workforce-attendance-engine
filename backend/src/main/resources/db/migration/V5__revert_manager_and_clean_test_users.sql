@@ -33,3 +33,4 @@ ON CONFLICT (email) DO UPDATE
     SET full_name = 'Mayank Verma',
         role = 'MANAGER', 
         is_active = TRUE;
+

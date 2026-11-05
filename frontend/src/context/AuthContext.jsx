@@ -25,11 +25,17 @@ export const AuthProvider = ({ children }) => {
     const refreshToken = params.get('refreshToken');
     const errorParam = params.get('error');
 
-    if (errorParam === 'account_not_linked' || errorParam) {
+    if (errorParam === 'account_not_linked') {
       const attemptedEmail = params.get('email');
       const emailDetail = attemptedEmail ? ` (${decodeURIComponent(attemptedEmail)})` : '';
       setAuthError(
         `Account not registered${emailDetail}. Please contact Manager (Mayank Verma) to request access.`
+      );
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    } else if (errorParam) {
+      setAuthError(
+        'Sign-in connection was interrupted. Please try tapping "Continue with Google" again.'
       );
       window.history.replaceState({}, document.title, window.location.pathname);
       return;

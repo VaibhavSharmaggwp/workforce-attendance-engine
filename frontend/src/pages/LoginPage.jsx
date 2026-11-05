@@ -19,7 +19,8 @@ export const LoginPage = () => {
     setAuthError(null);
     sessionStorage.setItem('ams_expected_role', selectedRole);
     const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || 'https://workforce-attendance-backend-0kue.onrender.com';
-    window.location.href = `${backendUrl}/oauth2/authorization/google`;
+    const currentOrigin = window.location.href.split('?')[0];
+    window.location.href = `${backendUrl}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(currentOrigin)}`;
   };
 
   const isManager = selectedRole === 'MANAGER';

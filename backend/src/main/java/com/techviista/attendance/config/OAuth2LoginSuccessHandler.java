@@ -20,6 +20,7 @@ import java.util.Optional;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final EmployeeRepository employeeRepository;
+    private final HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
@@ -33,11 +34,22 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        // Read originating redirect URI from cookie if present
+        String redirectUriFromCookie = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
+                .map(jakarta.servlet.http.Cookie::getValue)
+                .orElse(null);
+
+        // Always clean up authorization cookies on success
+        cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String rawEmail = oAuth2User.getAttribute("email");
         String email = rawEmail != null ? rawEmail.trim().toLowerCase() : "";
 
-        String cleanBase = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+        String baseToUse = (redirectUriFromCookie != null && !redirectUriFromCookie.isBlank())
+                ? redirectUriFromCookie
+                : frontendUrl;
+        String cleanBase = baseToUse != null ? baseToUse.replaceAll("/+$", "") : "";
         String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
 
         Optional<Employee> employeeOpt = employeeRepository.findByEmailIgnoreCase(email);

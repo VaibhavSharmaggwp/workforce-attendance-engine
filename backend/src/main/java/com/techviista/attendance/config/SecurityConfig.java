@@ -31,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
@@ -81,13 +82,18 @@ public class SecurityConfig {
                         .clientRegistrationRepository(clientRegistrationRepository())
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestResolver(customAuthorizationRequestResolver(clientRegistrationRepository()))
+                                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
                         )
                         .successHandler(oAuth2LoginSuccessHandler)
                         .failureHandler((request, response, exception) -> {
+                            cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
                             String errorMsg = exception != null && exception.getMessage() != null
                                     ? exception.getMessage()
                                     : "oauth2_failed";
-                            String cleanBase = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+                            String targetBase = CookieUtils.getCookie(request, HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
+                                    .map(jakarta.servlet.http.Cookie::getValue)
+                                    .orElse(frontendUrl);
+                            String cleanBase = targetBase != null ? targetBase.replaceAll("/+$", "") : "";
                             String redirectBase = cleanBase.isEmpty() ? "/" : cleanBase + "/";
                             response.sendRedirect(redirectBase + "?error=" + URLEncoder.encode(errorMsg, StandardCharsets.UTF_8));
                         })
